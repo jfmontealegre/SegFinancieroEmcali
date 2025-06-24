@@ -14,7 +14,7 @@ st.set_page_config(page_title="EMCALI Presupuesto", layout="centered")
 
 # === Credenciales internas ===
 credenciales = {
-    "admin": {"password": "1234", "centros": ["52000 Despacho Gerencia", "52010 Unidad de Gestión Administrativa", "52011 Unidad de Generación", "52012 Unidad de Prospectiva", "52100", "52200","52300"]},
+    "admin": {"password": "1234", "centros": ["52000", "52010", "52011", "52012", "52100", "52200","52300"]},
     "usuario": {"password": "abcd", "centros": ["52000"]},
     "jtandrade": {"password": "5678", "centros": ["52012"]}
 }
@@ -51,6 +51,19 @@ if not st.session_state["logueado"]:
     st.stop()
 else:
     mostrar_logout()
+    
+# === OCULTAR ELEMENTOS STREAMLIT PARA NO ADMIN ===
+if st.session_state.get("usuario") != "admin":
+    st.markdown("""
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    div[data-testid="stDecoration"] {display:none;}
+    div[data-testid="stSidebarNav"] {display:none;}
+    button[title="View app in Streamlit Community Cloud"] {display: none;}
+    </style>
+    """, unsafe_allow_html=True)
 
 # === Ruta de historial de cambios ===
 LOG_PATH = "historial_cambios.csv"
