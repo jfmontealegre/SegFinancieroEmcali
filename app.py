@@ -58,7 +58,6 @@ if st.session_state.get("usuario") != "admin":
     <style>
     #footer {visibility: hidden;}
     header {visibility: hidden;}
-    div[data-testid="stDecoration"] {display:none;}
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
     """, unsafe_allow_html=True)
