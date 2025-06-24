@@ -57,7 +57,6 @@ if st.session_state.get("usuario") != "admin":
     st.markdown("""
     <style>
     #footer {visibility: hidden;}
-    header {visibility: hidden;}
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
     """, unsafe_allow_html=True)
