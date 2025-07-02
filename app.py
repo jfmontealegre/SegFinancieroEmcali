@@ -10,6 +10,11 @@ import pandas as pd
 from datetime import datetime
 import os
 
+from datetime import datetime
+import pytz
+
+
+
 st.set_page_config(page_title="CRUD Presupuesto", layout="centered")
 
 # === Credenciales internas (sin .env) ===
@@ -18,6 +23,9 @@ credenciales = {
     "usuario": {"password": "abcd", "centros": ["52000"]},
     "jtandrade": {"password": "5678", "centros": ["52012"]}
 }
+
+zona_colombia = pytz.timezone("America/Bogota")
+ahora = datetime.now(zona_colombia)
 
 # === Login ===
 def mostrar_login():
@@ -130,7 +138,7 @@ if menu == "Agregar":
             "Usuario": st.session_state["usuario"],
             "Acción": "Agregar",
             "Ítem": item,
-            "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "FechaHora": datetime.now(pytz.timezone("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S"),
             "Grupo": grupo,
             "Centro Gestor": centro,
             "Unidad": unidad,
