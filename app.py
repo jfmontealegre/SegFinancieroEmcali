@@ -10,11 +10,11 @@ import pandas as pd
 from datetime import datetime
 import os
 
-st.set_page_config(page_title="EMCALI Presupuesto", layout="centered")
+st.set_page_config(page_title="Presupuesto_2026", layout="centered")
 
-# === Credenciales internas ===
+# === Credenciales internas (sin .env) ===
 credenciales = {
-    "admin": {"password": "1234", "centros": ["52000", "52010", "52011", "52012", "52100", "52200","52300"]},
+    "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
     "usuario": {"password": "abcd", "centros": ["52000"]},
     "jtandrade": {"password": "5678", "centros": ["52012"]}
 }
@@ -51,48 +51,32 @@ if not st.session_state["logueado"]:
     st.stop()
 else:
     mostrar_logout()
-    
-# === OCULTAR ELEMENTOS STREAMLIT PARA NO ADMIN ===
+
 if st.session_state.get("usuario") != "admin":
-    st.markdown("""
+    hide_streamlit_style = """
     <style>
-    #footer {visibility: hidden;}
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    div[data-testid="stDecoration"] {display:none;}
+    div[data-testid="stSidebarNav"] {display:none;}
+    div[data-testid="stSidebarUserContent"] {display:none;}
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# === Ruta de historial de cambios ===
-LOG_PATH = "historial_cambios.csv"
+# === CONFIGURACIÓN GENERAL ===
+st.title("📊 Gestión Presupuestal Dinámica")
 
-def registrar_accion(accion, fila):
-    now = datetime.now()
-    log = pd.DataFrame([{
-        "Usuario": st.session_state["usuario"],
-        "Fecha": now.strftime("%Y-%m-%d"),
-        "Hora": now.strftime("%H:%M:%S"),
-        "Acción": accion,
-        **fila
-    }])
-    if os.path.exists(LOG_PATH):
-        log.to_csv(LOG_PATH, mode="a", header=False, index=False)
-    else:
-        log.to_csv(LOG_PATH, index=False)
-
-# === Cargar relaciones ===
-st.title("📊 Gestión Presupuestal UENE")
 RELACION_FILE = "presupuesto.xlsx"
+
 @st.cache_data
 def cargar_relaciones(path):
     hojas = pd.read_excel(path, sheet_name=None)
-    gc = hojas["Grupos_Centros"]
-    cu = hojas["Centro_Unidades"]
-    cc = hojas["Centro_Conceptos"]
-    gc["Centro Gestor"] = gc["Centro Gestor"].astype(str).str[:5]
-    cu["Centro Gestor"] = cu["Centro Gestor"].astype(str).str[:5]
-    cc["Centro Gestor"] = cc["Centro Gestor"].astype(str).str[:5]
-    return gc, cu, cc
+    return hojas["Grupos_Centros"], hojas["Centro_Unidades"], hojas["Centro_Conceptos"]
 
-grupo_centros, centros_unidades, centros_conceptos = cargar_relaciones(RELACION_FILE)
+grupos_centros_df, centro_unidades_df, centro_conceptos_df = cargar_relaciones(RELACION_FILE)
 
 if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
@@ -100,24 +84,29 @@ if "datos" not in st.session_state:
         "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha"
     ])
 
+if "auditoria" not in st.session_state:
+    st.session_state.auditoria = pd.DataFrame(columns=[
+        "Usuario", "Acción", "Ítem", "FechaHora", "Grupo", "Centro Gestor",
+        "Unidad", "Concepto de Gasto", "Descripción", "Cantidad", "Valor Unitario", "Total"
+    ])
+
 df = st.session_state.datos
-menu = st.sidebar.selectbox("Menú", ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"] if st.session_state["usuario"] == "admin" else ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo"])
+menu = st.sidebar.selectbox("Menú", ["Agregar", "Buscar", "Editar", "Eliminar"])
 
 def obtener_centros(grupo):
-    todos = grupo_centros[grupo_centros["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
-    return [c for c in todos if c in st.session_state["centros_autorizados"]]
+    return grupos_centros_df[grupos_centros_df["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
 
 def obtener_unidades(centro):
-    return centros_unidades[centros_unidades["Centro Gestor"] == centro]["Unidad"].unique().tolist()
+    return centro_unidades_df[centro_unidades_df["Centro Gestor"] == centro]["Unidad"].unique().tolist()
 
 def obtener_conceptos(centro):
-    return centros_conceptos[centros_conceptos["Centro Gestor"] == centro]["Concepto de Gasto"].unique().tolist()
+    return centro_conceptos_df[centro_conceptos_df["Centro Gestor"] == centro]["Concepto de Gasto"].unique().tolist()
 
 # === AGREGAR ===
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
     item = st.text_input("Ítem")
-    grupo = st.selectbox("Grupo", grupo_centros["Grupo"].unique())
+    grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
     centros = obtener_centros(grupo)
     centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
     unidades = obtener_unidades(centro)
@@ -130,15 +119,38 @@ if menu == "Agregar":
     total = cantidad * valor_unitario
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
+
     if st.button("Guardar"):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha]],
                              columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
-        fila = nuevo.iloc[0].to_dict()
-        fila["Fecha"] = fecha.strftime("%Y-%m-%d")
-        registrar_accion("Agregar", fila)
+
+        st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
+            "Usuario": st.session_state["usuario"],
+            "Acción": "Agregar",
+            "Ítem": item,
+            "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Grupo": grupo,
+            "Centro Gestor": centro,
+            "Unidad": unidad,
+            "Concepto de Gasto": concepto,
+            "Descripción": descripcion,
+            "Cantidad": cantidad,
+            "Valor Unitario": valor_unitario,
+            "Total": total
+        }])], ignore_index=True)
+
         st.success("✅ Registro guardado correctamente")
+
+    # Mostrar tabla de registros agregados justo debajo
+    if not st.session_state.datos.empty:
+        st.subheader("📋 Registros Agregados")
+        st.dataframe(st.session_state.datos, use_container_width=True)
+
+    if st.session_state["usuario"] == "admin" and not st.session_state.auditoria.empty:
+        st.subheader("🛡️ Registro de Auditoría")
+        st.dataframe(st.session_state.auditoria, use_container_width=True)
 
 # === BUSCAR ===
 elif menu == "Buscar":
@@ -160,7 +172,7 @@ elif menu == "Editar":
         if not resultado.empty:
             index = resultado.index[0]
             registro = resultado.iloc[0]
-            grupo = st.selectbox("Grupo", grupo_centros["Grupo"].unique(), index=list(grupo_centros["Grupo"].unique()).index(registro["Grupo"]))
+            grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique(), index=list(grupos_centros_df["Grupo"].unique()).index(registro["Grupo"]))
             centros = obtener_centros(grupo)
             centro = st.selectbox("Centro Gestor", centros, index=centros.index(registro["Centro Gestor"]))
             unidades = obtener_unidades(centro)
@@ -174,21 +186,29 @@ elif menu == "Editar":
             fecha = st.date_input("Fecha", value=pd.to_datetime(registro["Fecha"]))
             st.write(f"💲 **Total Calculado:** {total:,.2f}")
             if st.button("Actualizar"):
-                fila_dict = {
+                st.session_state.datos.at[index, "Grupo"] = grupo
+                st.session_state.datos.at[index, "Centro Gestor"] = centro
+                st.session_state.datos.at[index, "Unidad"] = unidad
+                st.session_state.datos.at[index, "Concepto de Gasto"] = concepto
+                st.session_state.datos.at[index, "Descripción del Gasto"] = descripcion
+                st.session_state.datos.at[index, "Cantidad"] = cantidad
+                st.session_state.datos.at[index, "Valor Unitario"] = valor_unitario
+                st.session_state.datos.at[index, "Total"] = total
+                st.session_state.datos.at[index, "Fecha"] = fecha
+                st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
+                    "Usuario": st.session_state["usuario"],
+                    "Acción": "Editar",
                     "Ítem": editar_item,
+                    "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     "Grupo": grupo,
                     "Centro Gestor": centro,
                     "Unidad": unidad,
                     "Concepto de Gasto": concepto,
-                    "Descripción del Gasto": descripcion,
+                    "Descripción": descripcion,
                     "Cantidad": cantidad,
                     "Valor Unitario": valor_unitario,
-                    "Total": total,
-                    "Fecha": fecha.strftime("%Y-%m-%d")
-                }
-                for campo, valor in fila_dict.items():
-                    st.session_state.datos.at[index, campo] = valor
-                registrar_accion("Editar", fila_dict)
+                    "Total": total
+                }])], ignore_index=True)
                 st.success("✅ Registro actualizado")
         else:
             st.warning("Ítem no encontrado")
@@ -199,25 +219,23 @@ elif menu == "Eliminar":
     eliminar_item = st.text_input("Ítem a eliminar")
     if st.button("Eliminar"):
         if eliminar_item in df["Ítem"].values:
-            fila = df[df["Ítem"] == eliminar_item].iloc[0].to_dict()
-            fila["Fecha"] = str(fila["Fecha"])
-            registrar_accion("Eliminar", fila)
+            eliminado = df[df["Ítem"] == eliminar_item].iloc[0]
+            st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
+                "Usuario": st.session_state["usuario"],
+                "Acción": "Eliminar",
+                "Ítem": eliminar_item,
+                "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Grupo": eliminado["Grupo"],
+                "Centro Gestor": eliminado["Centro Gestor"],
+                "Unidad": eliminado["Unidad"],
+                "Concepto de Gasto": eliminado["Concepto de Gasto"],
+                "Descripción": eliminado["Descripción del Gasto"],
+                "Cantidad": eliminado["Cantidad"],
+                "Valor Unitario": eliminado["Valor Unitario"],
+                "Total": eliminado["Total"]
+            }])], ignore_index=True)
+
             st.session_state.datos = df[df["Ítem"] != eliminar_item]
             st.success("✅ Registro eliminado")
         else:
             st.error("Ítem no encontrado")
-
-# === VER TODO ===
-elif menu == "Ver Todo":
-    st.subheader("📋 Todos los Registros")
-    st.dataframe(df)
-
-# === HISTORIAL ===
-elif menu == "Historial":
-    st.subheader("🕒 Historial de Cambios")
-    if os.path.exists(LOG_PATH):
-        historial = pd.read_csv(LOG_PATH)
-        st.dataframe(historial)
-        st.download_button("📥 Descargar historial CSV", data=historial.to_csv(index=False), file_name="historial_cambios.csv")
-    else:
-        st.info("No hay historial registrado aún.")
