@@ -99,7 +99,13 @@ if "auditoria" not in st.session_state:
     ])
 
 df = st.session_state.datos
-menu = st.sidebar.selectbox("Menú", ["Agregar", "Buscar", "Editar", "Eliminar"])
+if st.session_state["usuario"] == "admin":
+    opciones_menu = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
+else:
+    opciones_menu = ["Agregar", "Ver Todo"]
+
+menu = st.sidebar.selectbox("Menú", opciones_menu)
+
 
 def obtener_centros(grupo):
     return grupos_centros_df[grupos_centros_df["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
@@ -247,3 +253,12 @@ elif menu == "Eliminar":
             st.success("✅ Registro eliminado")
         else:
             st.error("Ítem no encontrado")
+
+elif menu == "Historial" and st.session_state["usuario"] == "admin":
+    st.subheader("🕓 Historial de Actividades")
+    if os.path.exists("bitacora_admin.csv"):
+        log = pd.read_csv("bitacora_admin.csv")
+        st.dataframe(log, use_container_width=True)
+        st.download_button("📥 Descargar Historial", data=log.to_csv(index=False), file_name="bitacora_admin.csv", mime="text/csv")
+    else:
+        st.info("No hay registros de historial aún.")
