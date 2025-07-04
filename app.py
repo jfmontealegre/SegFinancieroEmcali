@@ -45,16 +45,16 @@ else:
     mostrar_logout()
 
 if st.session_state.get("usuario") != "admin":
-    hide_streamlit_style = '''
+    hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     div[data-testid="stDecoration"] {display:none;}
-    div[data-testid="stSidebarUserContent"] {display:none;}
+    /* div[data-testid="stSidebarUserContent"] {display:none;} */  <-- ¡COMENTADA O ELIMINADA!
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
-    '''
+    """
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
     
 st.title("📊 Gestión Presupuestal UENE 2026")
