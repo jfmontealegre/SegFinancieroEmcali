@@ -6,6 +6,61 @@ import os
 
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
+st.markdown("""
+<style>
+    /* General background */
+    body {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    /* Main content area */
+    .main {
+        background-color: white;
+        border-radius: 12px;
+        padding: 2rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    /* Headers */
+    h1, h2, h3 {
+        color: #343a40;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Buttons */
+    .stButton button {
+        background-color: #2c7be5;
+        color: white;
+        border-radius: 8px;
+        padding: 0.5em 1.2em;
+        font-weight: bold;
+    }
+    .stButton button:hover {
+        background-color: #1a68d1;
+        color: #f8f9fa;
+    }
+
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #f1f3f5;
+        border-right: 1px solid #dee2e6;
+    }
+
+    /* Input fields */
+    .stTextInput, .stNumberInput, .stSelectbox {
+        font-size: 16px;
+    }
+
+    /* DataFrame */
+    .stDataFrame {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
     "usuario": {"password": "abcd", "centros": ["52000"]},
