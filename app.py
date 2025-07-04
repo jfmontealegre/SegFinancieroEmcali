@@ -1,35 +1,19 @@
-# -*- coding: utf-8 -*-
-"""
-Editor de Spyder
-
-Este es un archivo temporal.
-"""
-
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-import os
-
-from datetime import datetime
 import pytz
-
-
+import os
 
 st.set_page_config(page_title="CRUD Presupuesto", layout="centered")
 
-# === Credenciales internas (sin .env) ===
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
     "usuario": {"password": "abcd", "centros": ["52000"]},
     "jtandrade": {"password": "5678", "centros": ["52012"]}
 }
 
-zona_colombia = pytz.timezone("America/Bogota")
-ahora = datetime.now(zona_colombia)
-
-# === Login ===
 def mostrar_login():
-    st.title("\U0001F512 Inicio de Sesión")
+    st.title("\\U0001F512 Inicio de Sesión")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
@@ -61,23 +45,22 @@ else:
     mostrar_logout()
 
 if st.session_state.get("usuario") != "admin":
-    hide_streamlit_style = """
+    hide_streamlit_style = '''
     <style>
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     header {visibility: hidden;}
     div[data-testid="stDecoration"] {display:none;}
-    div[data-testid="stSidebarNav"] {display:none;}
     div[data-testid="stSidebarUserContent"] {display:none;}
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
-    """
+    '''
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
-
-# === CONFIGURACIÓN GENERAL ===
+    
 st.title("📊 Gestión Presupuestal Dinámica")
 
 RELACION_FILE = "presupuesto.xlsx"
+BITACORA_FILE = "bitacora_admin.csv"
 
 @st.cache_data
 def cargar_relaciones(path):
@@ -92,21 +75,6 @@ if "datos" not in st.session_state:
         "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha"
     ])
 
-if "auditoria" not in st.session_state:
-    st.session_state.auditoria = pd.DataFrame(columns=[
-        "Usuario", "Acción", "Ítem", "FechaHora", "Grupo", "Centro Gestor",
-        "Unidad", "Concepto de Gasto", "Descripción", "Cantidad", "Valor Unitario", "Total"
-    ])
-
-df = st.session_state.datos
-if st.session_state["usuario"] == "admin":
-    opciones_menu = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
-else:
-    opciones_menu = ["Agregar", "Ver Todo"]
-
-menu = st.sidebar.selectbox("Menú", opciones_menu)
-
-
 def obtener_centros(grupo):
     return grupos_centros_df[grupos_centros_df["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
 
@@ -116,7 +84,26 @@ def obtener_unidades(centro):
 def obtener_conceptos(centro):
     return centro_conceptos_df[centro_conceptos_df["Centro Gestor"] == centro]["Concepto de Gasto"].unique().tolist()
 
-# === AGREGAR ===
+def registrar_bitacora(accion, usuario, item):
+    ahora = datetime.now(pytz.timezone("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S")
+    fila = pd.DataFrame([[usuario, ahora, accion, item]], columns=["Usuario", "Hora", "Acción", "Ítem"])
+    if os.path.exists(BITACORA_FILE):
+        existente = pd.read_csv(BITACORA_FILE)
+        nueva = pd.concat([existente, fila], ignore_index=True)
+    else:
+        nueva = fila
+    nueva.to_csv(BITACORA_FILE, index=False)
+
+# Menú por tipo de usuario
+if st.session_state["usuario"] == "admin":
+    opciones_menu = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
+else:
+    opciones_menu = ["Agregar", "Ver Todo"]
+
+menu = st.sidebar.selectbox("Menú", opciones_menu)
+
+df = st.session_state.datos
+
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
     item = st.text_input("Ítem")
@@ -133,40 +120,17 @@ if menu == "Agregar":
     total = cantidad * valor_unitario
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
-
     if st.button("Guardar"):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha]],
                              columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
-
-        st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
-            "Usuario": st.session_state["usuario"],
-            "Acción": "Agregar",
-            "Ítem": item,
-            "FechaHora": datetime.now(pytz.timezone("America/Bogota")).strftime("%Y-%m-%d %H:%M:%S"),
-            "Grupo": grupo,
-            "Centro Gestor": centro,
-            "Unidad": unidad,
-            "Concepto de Gasto": concepto,
-            "Descripción": descripcion,
-            "Cantidad": cantidad,
-            "Valor Unitario": valor_unitario,
-            "Total": total
-        }])], ignore_index=True)
-
+        registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.success("✅ Registro guardado correctamente")
-
-    # Mostrar tabla de registros agregados justo debajo
     if not st.session_state.datos.empty:
         st.subheader("📋 Registros Agregados")
         st.dataframe(st.session_state.datos, use_container_width=True)
 
-    if st.session_state["usuario"] == "admin" and not st.session_state.auditoria.empty:
-        st.subheader("🛡️ Registro de Auditoría")
-        st.dataframe(st.session_state.auditoria, use_container_width=True)
-
-# === BUSCAR ===
 elif menu == "Buscar":
     st.subheader("🔍 Buscar por Ítem")
     buscar_item = st.text_input("Ingrese Ítem")
@@ -177,7 +141,6 @@ elif menu == "Buscar":
         else:
             st.warning("No se encontró el ítem")
 
-# === EDITAR ===
 elif menu == "Editar":
     st.subheader("✏️ Editar Registro")
     editar_item = st.text_input("Ítem a editar")
@@ -209,50 +172,25 @@ elif menu == "Editar":
                 st.session_state.datos.at[index, "Valor Unitario"] = valor_unitario
                 st.session_state.datos.at[index, "Total"] = total
                 st.session_state.datos.at[index, "Fecha"] = fecha
-                st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
-                    "Usuario": st.session_state["usuario"],
-                    "Acción": "Editar",
-                    "Ítem": editar_item,
-                    "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    "Grupo": grupo,
-                    "Centro Gestor": centro,
-                    "Unidad": unidad,
-                    "Concepto de Gasto": concepto,
-                    "Descripción": descripcion,
-                    "Cantidad": cantidad,
-                    "Valor Unitario": valor_unitario,
-                    "Total": total
-                }])], ignore_index=True)
+                registrar_bitacora("Editar", st.session_state["usuario"], editar_item)
                 st.success("✅ Registro actualizado")
         else:
             st.warning("Ítem no encontrado")
 
-# === ELIMINAR ===
 elif menu == "Eliminar":
     st.subheader("🗑️ Eliminar Registro")
     eliminar_item = st.text_input("Ítem a eliminar")
     if st.button("Eliminar"):
         if eliminar_item in df["Ítem"].values:
-            eliminado = df[df["Ítem"] == eliminar_item].iloc[0]
-            st.session_state.auditoria = pd.concat([st.session_state.auditoria, pd.DataFrame([{
-                "Usuario": st.session_state["usuario"],
-                "Acción": "Eliminar",
-                "Ítem": eliminar_item,
-                "FechaHora": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                "Grupo": eliminado["Grupo"],
-                "Centro Gestor": eliminado["Centro Gestor"],
-                "Unidad": eliminado["Unidad"],
-                "Concepto de Gasto": eliminado["Concepto de Gasto"],
-                "Descripción": eliminado["Descripción del Gasto"],
-                "Cantidad": eliminado["Cantidad"],
-                "Valor Unitario": eliminado["Valor Unitario"],
-                "Total": eliminado["Total"]
-            }])], ignore_index=True)
-
             st.session_state.datos = df[df["Ítem"] != eliminar_item]
+            registrar_bitacora("Eliminar", st.session_state["usuario"], eliminar_item)
             st.success("✅ Registro eliminado")
         else:
             st.error("Ítem no encontrado")
+
+elif menu == "Ver Todo":
+    st.subheader("📋 Todos los Registros")
+    st.dataframe(df)
 
 elif menu == "Historial" and st.session_state["usuario"] == "admin":
     st.subheader("🕓 Historial de Actividades")
