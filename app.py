@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 import os
 
-st.set_page_config(page_title="CRUD Presupuesto", layout="centered")
+st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
@@ -13,7 +13,7 @@ credenciales = {
 }
 
 def mostrar_login():
-    st.title("\\U0001F512 Inicio de Sesión")
+    st.title("\U0001F512 Inicio de Sesión")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
@@ -57,7 +57,7 @@ if st.session_state.get("usuario") != "admin":
     '''
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
     
-st.title("📊 Gestión Presupuestal Dinámica")
+st.title("📊 Gestión Presupuestal UENE 2026")
 
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
