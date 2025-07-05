@@ -115,15 +115,14 @@ if st.session_state.get("usuario") != "admin":
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
     """
-st.markdown("""
-<div style='display: flex; align-items: center; gap: 16px; margin-bottom: 20px;'>
-    <img src='icono_energia.png' width='60' style='margin-bottom: 0;'/>
-    <div>
-        <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0;'>Gestión Presupuestal UENE</h1>
-        <h3 style='font-family: "Prometo", sans-serif; color: #f8cf3f; margin-top: 0;'>2026</h3>
-    </div>
-</div>
-""", unsafe_allow_html=True)
+col1, col2 = st.columns([1, 6])
+with col1:
+    st.image("icono-energia.png", width=60)
+with col2:
+    st.markdown("""
+    <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0;'>Gestión Presupuestal UENE</h1>
+    <h3 style='font-family: "Prometo", sans-serif; color: #f8cf3f; margin-top: 0;'>2026</h3>
+    """, unsafe_allow_html=True)
 
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
