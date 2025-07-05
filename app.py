@@ -116,9 +116,9 @@ if st.session_state.get("usuario") != "admin":
     </style>
     """
     st.markdown("""
-    <div style='display: flex; align-items: center; gap: 10px;'>
-        <img src="ícono-energía.png" width="50" style="margin-right: 10px;" />
-        <h1 style='display: inline; font-family: "Prometo", sans-serif; color: #ef5f17;'>
+    <div style='display: flex; align-items: center; gap: 12px;'>
+        <img src='icono_energia.png' width='48'>
+        <h1 style='margin: 0; font-family: "Prometo", sans-serif; color: #ef5f17;'>
             Gestión Presupuestal UENE 2026
         </h1>
     </div>
