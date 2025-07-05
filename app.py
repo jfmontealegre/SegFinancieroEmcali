@@ -124,7 +124,7 @@ if st.session_state.get("usuario") != "admin":
     </div>
     """, unsafe_allow_html=True)
     
-#st.title("📊 Gestión Presupuestal UENE 2026")
+st.title("📊 Gestión Presupuestal UENE 2026")
 
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
