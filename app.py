@@ -115,9 +115,16 @@ if st.session_state.get("usuario") != "admin":
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
     """
-    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+    st.markdown("""
+    <div style='display: flex; align-items: center; gap: 10px;'>
+        <img src="ícono-energía.png" width="50" style="margin-right: 10px;" />
+        <h1 style='display: inline; font-family: "Prometo", sans-serif; color: #ef5f17;'>
+            Gestión Presupuestal UENE 2026
+        </h1>
+    </div>
+    """, unsafe_allow_html=True)
     
-st.title("📊 Gestión Presupuestal UENE 2026")
+#st.title("📊 Gestión Presupuestal UENE 2026")
 
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
