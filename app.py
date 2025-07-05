@@ -7,7 +7,7 @@ import os
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
 # Mostrar el logo en la barra lateral
-st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_column_width=True)
+st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
 # Estilo corporativo personalizado
 st.markdown("""
