@@ -118,7 +118,7 @@ if st.session_state.get("usuario") != "admin":
 col1, col2 = st.columns([1, 10])  # proporción ajustada
 
 with col1:
-    st.image("ícono-energía.png", width=70)  # ajusta el tamaño según necesites
+    st.image("icono-energia.png", width=70)  # ajusta el tamaño según necesites
 
 with col2:
     st.markdown("""
