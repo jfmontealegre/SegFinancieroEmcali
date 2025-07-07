@@ -179,14 +179,15 @@ df = st.session_state.datos
 
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
-    
-    # Generar consecutivo automático para Ítem
-    total_items = len(st.session_state.datos)
-    proximo_item = f"G{total_items + 1:04}" if total_items < 10000 else "LIMITE"
-    item = proximo_item  # Aquí defines 'item'
-    # Mostrar Ítem como campo de solo lectura
-    st.text_input("Ítem", value=proximo_item, disabled=True)
-    
+
+    # Inicializa el contador si no existe
+    if "contador_item" not in st.session_state:
+        st.session_state.contador_item = 1
+
+    # Generar Ítem automáticamente
+    item = f"G{st.session_state.contador_item:04}"  # G0001, G0002, etc.
+    st.text_input("Ítem", value=item, disabled=True)
+
     grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
     centros = obtener_centros(grupo)
     centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
@@ -200,14 +201,19 @@ if menu == "Agregar":
     total = cantidad * valor_unitario
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
-    item = f"G{st.session_state.contador_item:04}" 
-    
+
     if st.button("Guardar"):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                           descripcion, cantidad, valor_unitario, total, fecha]],
-                         columns=df.columns)
+                               descripcion, cantidad, valor_unitario, total, fecha]],
+                             columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
+        registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
+        st.success("✅ Registro guardado correctamente")
+
+    if not st.session_state.datos.empty:
+        st.subheader("📋 Registros Agregados")
+        st.dataframe(st.session_state.datos, use_container_width=True)
         
     if "contador_item" not in st.session_state:
         st.session_state.contador_item = 1
