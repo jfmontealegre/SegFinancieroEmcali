@@ -179,7 +179,13 @@ df = st.session_state.datos
 
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
-    item = st.text_input("Ítem")
+    
+    # Generar consecutivo automático para Ítem
+    total_items = len(st.session_state.datos)
+    proximo_item = f"G{total_items + 1:04}" if total_items < 10000 else "LIMITE"
+    # Mostrar Ítem como campo de solo lectura
+    st.text_input("Ítem", value=proximo_item, disabled=True)
+    
     grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
     centros = obtener_centros(grupo)
     centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
@@ -194,9 +200,9 @@ if menu == "Agregar":
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
     if st.button("Guardar"):
-        nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                               descripcion, cantidad, valor_unitario, total, fecha]],
-                             columns=df.columns)
+        nuevo = pd.DataFrame([[proximo_item, grupo, centro, unidad, concepto,
+                       descripcion, cantidad, valor_unitario, total, fecha]],
+                     columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.success("✅ Registro guardado correctamente")
