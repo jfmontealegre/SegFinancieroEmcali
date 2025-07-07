@@ -177,6 +177,32 @@ menu = st.sidebar.selectbox("Menú", opciones_menu)
 
 df = st.session_state.datos
 
+# ===================== CUADRO SUPERIOR DERECHA =====================
+ingreso_asignado = 100000  # Este valor lo puedes cargar dinámicamente si quieres
+total_gastado = st.session_state.datos["Total"].sum() if not st.session_state.datos.empty else 0
+saldo_disponible = ingreso_asignado - total_gastado
+
+cuadro_html = f"""
+<div style='
+    position: absolute;
+    top: 80px; right: 20px;
+    background-color: #f8f9fa;
+    border: 2px solid #ef5f17;
+    border-radius: 10px;
+    padding: 1rem 2rem;
+    width: 300px;
+    font-family: Segoe UI, sans-serif;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.1);
+'>
+    <h4 style='color: #ef5f17; margin-bottom: 10px;'>Centro Gestor: 52000 GERENCIA UENE</h4>
+    <p><strong>Ingreso Asignado:</strong> ${ingreso_asignado:,.2f}</p>
+    <p><strong>Gastos Registrados:</strong> ${total_gastado:,.2f}</p>
+    <p><strong>Saldo Disponible:</strong> <span style='color: {"red" if saldo_disponible < 0 else "green"};'>${saldo_disponible:,.2f}</span></p>
+</div>
+"""
+
+st.markdown(cuadro_html, unsafe_allow_html=True)
+
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
 
