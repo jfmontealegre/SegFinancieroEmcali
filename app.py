@@ -138,7 +138,12 @@ BITACORA_FILE = "bitacora_admin.csv"
 @st.cache_data
 def cargar_relaciones(path):
     hojas = pd.read_excel(path, sheet_name=None)
-    return hojas["Grupos_Centros"], hojas["Centro_Unidades"], hojas["Centro_Conceptos"]
+    return (
+        hojas["Grupos_Centros"],
+        hojas["Centro_Unidades"],
+        hojas["Centro_Conceptos"],
+        hojas["Ingresos_Centros"]
+    )
 
 grupos_centros_df, centro_unidades_df, centro_conceptos_df = cargar_relaciones(RELACION_FILE)
 
@@ -148,6 +153,12 @@ if "datos" not in st.session_state:
         "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha"
     ])
 
+def obtener_ingreso_asignado(centro):
+    fila = ingresos_centros_df[ingresos_centros_df["Centro Gestor"] == centro]
+    if not fila.empty:
+        return float(fila.iloc[0]["Ingreso Asignado"])
+    return 0.0
+    
 def obtener_centros(grupo):
     return grupos_centros_df[grupos_centros_df["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
 
@@ -177,13 +188,14 @@ menu = st.sidebar.selectbox("Menú", opciones_menu)
 
 df = st.session_state.datos
 
-# === CUADRO DE GASTOS REGISTRADOS EN LA BARRA LATERAL ===
 with st.sidebar:
     st.markdown("---")  # Línea divisoria
 
-    # Simular ingreso asignado (esto luego se puede conectar a Excel)
-    ingreso_asignado = 100000.0
-    total_gastado = st.session_state.datos["Total"].sum() if not st.session_state.datos.empty else 0
+    # Detectar centro si ya se ha seleccionado (en menú Agregar)
+    centro_actual = st.session_state.get("centro_actual", "52000 GERENCIA UENE")
+
+    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
 
     st.markdown(f"""
@@ -196,7 +208,7 @@ with st.sidebar:
         font-size: 14px;
         font-family: Segoe UI, sans-serif;
     '>
-        <h4 style='color:#ef5f17; margin:0;'>💼 Presupuesto UENE</h4>
+        <h4 style='color:#ef5f17; margin:0;'>💼 {centro_actual}</h4>
         <p style='margin:0;'><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
         <p style='margin:0;'><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
         <p style='margin:0;'><strong>Saldo:</strong> 
@@ -219,6 +231,7 @@ if menu == "Agregar":
     grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
     centros = obtener_centros(grupo)
     centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
+    st.session_state["centro_actual"] = centro
     unidades = obtener_unidades(centro)
     unidad = st.selectbox("Unidad", unidades if unidades else ["-"])
     conceptos = obtener_conceptos(centro)
