@@ -115,13 +115,21 @@ if st.session_state.get("usuario") != "admin":
     button[title="View app in Streamlit Community Cloud"] {display: none;}
     </style>
     """
-col1, col2 = st.columns([1, 6])
+col1, col2 = st.columns([1, 10])  # proporción ajustada
+
 with col1:
-    st.image("icono-energia.png", width=60)
+    st.image("ícono-energía.png", width=70)  # ajusta el tamaño según necesites
+
 with col2:
     st.markdown("""
-    <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0;'>Gestión Presupuestal UENE</h1>
-    <h3 style='font-family: "Prometo", sans-serif; color: #f8cf3f; margin-top: 0;'>2026</h3>
+    <div style='display: flex; flex-direction: column; justify-content: center;'>
+        <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
+            Gestión Presupuestal UENE
+        </h1>
+        <h3 style='font-family: "Prometo", sans-serif; color: #f8cf3f; margin-top: 0; font-size: 24px;'>
+            2026
+        </h3>
+    </div>
     """, unsafe_allow_html=True)
 
 RELACION_FILE = "presupuesto.xlsx"
