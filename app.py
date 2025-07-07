@@ -145,7 +145,7 @@ def cargar_relaciones(path):
         hojas["Ingresos_Centros"]
     )
 
-grupos_centros_df, centro_unidades_df, centro_conceptos_df = cargar_relaciones(RELACION_FILE)
+grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df = cargar_relaciones(RELACION_FILE)
 
 if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
