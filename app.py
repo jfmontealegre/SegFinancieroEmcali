@@ -183,6 +183,7 @@ if menu == "Agregar":
     # Generar consecutivo automático para Ítem
     total_items = len(st.session_state.datos)
     proximo_item = f"G{total_items + 1:04}" if total_items < 10000 else "LIMITE"
+    item = proximo_item  # Aquí defines 'item'
     # Mostrar Ítem como campo de solo lectura
     st.text_input("Ítem", value=proximo_item, disabled=True)
     
@@ -199,11 +200,18 @@ if menu == "Agregar":
     total = cantidad * valor_unitario
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
+    item = f"G{st.session_state.contador_item:04}" 
+    
     if st.button("Guardar"):
-        nuevo = pd.DataFrame([[proximo_item, grupo, centro, unidad, concepto,
-                       descripcion, cantidad, valor_unitario, total, fecha]],
-                     columns=df.columns)
+        nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
+                           descripcion, cantidad, valor_unitario, total, fecha]],
+                         columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
+        st.session_state.contador_item += 1
+        
+    if "contador_item" not in st.session_state:
+        st.session_state.contador_item = 1
+        # Registrar en bitácora (ahora sí, item ya está definido)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.success("✅ Registro guardado correctamente")
     if not st.session_state.datos.empty:
