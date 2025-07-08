@@ -59,7 +59,7 @@ if not st.session_state["autenticado"]:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-st.markdown('''
+st.markdown("""
 <style>
     html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
@@ -145,13 +145,13 @@ with col1:
     st.image("icono-energia.png", width=90)
 
 with col2:
-    st.markdown('''
+    st.markdown("""
     <div style='display: flex; flex-direction: column; justify-content: center;'>
         <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
             Gestión Presupuestal UENE 2026
         </h1>
     </div>
-    ''', unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
