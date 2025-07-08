@@ -118,17 +118,14 @@ if st.session_state.get("usuario") != "admin":
 col1, col2 = st.columns([1, 10])  # proporción ajustada
 
 with col1:
-    st.image("icono-energia.png", width=70)  # ajusta el tamaño según necesites
+    st.image("icono-energia.png", width=90)  # ajusta el tamaño según necesites
 
 with col2:
     st.markdown("""
     <div style='display: flex; flex-direction: column; justify-content: center;'>
         <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
-            Gestión Presupuestal UENE
+            Gestión Presupuestal UENE 2026
         </h1>
-        <h3 style='font-family: "Prometo", sans-serif; color: #f8cf3f; margin-top: 0; font-size: 24px;'>
-            2026
-        </h3>
     </div>
     """, unsafe_allow_html=True)
 
