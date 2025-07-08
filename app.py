@@ -37,7 +37,7 @@ if not st.session_state["autenticado"]:
             }}
         </style>
         <div class="login-container">
-            <img src="{LOGO_TANGARA}" alt="Tangara Logo">
+            st.image(LOGO_TANGARA, width=130)
             <h2>🔒 Inicio de Sesión</h2>
     """, unsafe_allow_html=True)
 
@@ -46,7 +46,7 @@ if not st.session_state["autenticado"]:
     login = st.button("Iniciar sesión")
 
     if login:
-        if usuario == "admin" and contrasena == "admin123":
+        if usuario == "admin" and contrasena == "1234":
             st.session_state["autenticado"] = True
             st.success("✅ Bienvenida, sesión iniciada")
             st.experimental_rerun()
