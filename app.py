@@ -219,15 +219,13 @@ with st.sidebar:
     saldo_disponible = ingreso_asignado - total_gastado
 
     st.markdown(f"""
-        <div style="
-            background-color: #f8f9fa;
-            border: 2px solid #ef5f17;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            font-size: 14px;
-            font-family: Segoe UI, sans-serif;
-        ">
+        <div style="background-color: #f8f9fa;
+                    border: 2px solid #ef5f17;
+                    border-radius: 10px;
+                    padding: 1rem;
+                    margin-top: 1rem;
+                    font-size: 14px;
+                    font-family: Segoe UI, sans-serif;">
             <h4 style='color:#ef5f17; margin:0;'>&#128188; {centro_actual}</h4>
             <p style='margin:0;'><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
             <p style='margin:0;'><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
@@ -236,8 +234,6 @@ with st.sidebar:
             </p>
         </div>
     """, unsafe_allow_html=True)
-
-
 
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
