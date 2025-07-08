@@ -11,9 +11,6 @@ st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
 LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
-if "autenticado" not in st.session_state:
-    st.session_state["autenticado"] = False
-
 if not st.session_state["autenticado"]:
     st.markdown("""
         <style>
