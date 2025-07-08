@@ -218,7 +218,7 @@ with st.sidebar:
     total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
 
-    st.markdown(f'''
+    st.markdown(f"""
         <div style='
             background-color: #f8f9fa;
             border: 2px solid #ef5f17;
@@ -235,7 +235,7 @@ with st.sidebar:
                 <span style='color:{"red" if saldo_disponible < 0 else "green"};'>${saldo_disponible:,.2f}</span>
             </p>
         </div>
-    ''', unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
 
