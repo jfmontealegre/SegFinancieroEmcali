@@ -52,20 +52,15 @@ credenciales = {
 # Autenticación secundaria
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
-        
 def mostrar_login():
-    # Logo centrado
     st.markdown(f"""
         <div style="text-align: center;">
-            <img src="Pajaro_Tangara_2.png" width="130">
+            <img src="https://raw.githubusercontent.com/tu-usuario/tu-repo/main/Pajaro_Tangara_2.png" width="130">
         </div>
     """, unsafe_allow_html=True)
-
     st.title("🔐 Inicio de Sesión")
-    
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
-
     if st.button("Iniciar sesión"):
         if username in credenciales and credenciales[username]["password"] == password:
             st.session_state["logueado"] = True
