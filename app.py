@@ -12,16 +12,12 @@ st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 # Configuración inicial
 st.set_page_config(page_title="Inicio de Sesión", layout="centered")
 
-# Ruta relativa del archivo
-LOGO_TANGARA = "Pajaro_Tangara_2.png"  # Asegúrate que esté en la misma carpeta del script
+LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
-# Inicializar autenticación si no existe
 if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
 
-# Solo mostrar login si no está autenticado
 if not st.session_state["autenticado"]:
-    # Fondo suave con logo e inicio de sesión
     st.markdown(f"""
         <style>
             .login-container {{
@@ -53,39 +49,30 @@ if not st.session_state["autenticado"]:
     login = st.button("Iniciar sesión")
 
     if login:
-        if usuario == "admin" and contrasena == "admin123":  # Cambia esto por tu validación real
+        if usuario == "admin" and contrasena == "admin123":
             st.session_state["autenticado"] = True
             st.success("✅ Bienvenida, sesión iniciada")
             st.experimental_rerun()
         else:
             st.warning("⚠️ Usuario o contraseña incorrectos")
 
-    # Cierra el div de la caja de login
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
-    
-# Estilo corporativo personalizado
-st.markdown("""
+
+st.markdown(\"\"\"
 <style>
-    /* Fuente personalizada: Prometo (sustituida por Segoe UI o sans-serif si no disponible) */
     html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
     }
-
-    /* Logo centrado en la barra lateral */
     [data-testid="stSidebar"] {
         background-color: #f8f9fa;
         border-right: 2px solid #ef5f17;
         padding-top: 1rem;
     }
-
-    /* Títulos */
     h1, h2, h3 {
         color: #ef5f17;
         font-weight: bold;
     }
-
-    /* Botones */
     .stButton > button {
         background-color: #ef5f17;
         color: white;
@@ -95,31 +82,24 @@ st.markdown("""
         border: none;
         transition: background-color 0.3s;
     }
-
     .stButton > button:hover {
         background-color: #cc4d12;
         color: white;
     }
-
-    /* Inputs y tablas */
     .stTextInput, .stNumberInput, .stSelectbox {
         font-size: 16px;
     }
-
-    /* Área principal */
     .main {
         background-color: #ffffff;
         border-radius: 15px;
         padding: 2rem;
         box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
     }
-
-    /* Iconos y decoraciones */
     div[data-testid="stDecoration"] {
         display: none;
     }
 </style>
-""", unsafe_allow_html=True)
+\"\"\", unsafe_allow_html=True)
 
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
@@ -128,7 +108,7 @@ credenciales = {
 }
 
 def mostrar_login():
-    st.title("\U0001F512 Inicio de Sesión")
+    st.title("\\U0001F512 Inicio de Sesión")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
@@ -159,21 +139,10 @@ if not st.session_state["logueado"]:
 else:
     mostrar_logout()
 
-if st.session_state.get("usuario") != "admin":
-    hide_streamlit_style = """
-    <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    div[data-testid="stDecoration"] {display:none;}
-    /* div[data-testid="stSidebarUserContent"] {display:none;} */  <-- ¡COMENTADA O ELIMINADA!
-    button[title="View app in Streamlit Community Cloud"] {display: none;}
-    </style>
-    """
-col1, col2 = st.columns([1, 10])  # proporción ajustada
+col1, col2 = st.columns([1, 10])
 
 with col1:
-    st.image("icono-energia.png", width=90)  # ajusta el tamaño según necesites
+    st.image("icono-energia.png", width=90)
 
 with col2:
     st.markdown("""
@@ -210,7 +179,7 @@ def obtener_ingreso_asignado(centro):
     if not fila.empty:
         return float(fila.iloc[0]["Ingreso Asignado"])
     return 0.0
-    
+
 def obtener_centros(grupo):
     return grupos_centros_df[grupos_centros_df["Grupo"] == grupo]["Centro Gestor"].unique().tolist()
 
@@ -230,7 +199,6 @@ def registrar_bitacora(accion, usuario, item):
         nueva = fila
     nueva.to_csv(BITACORA_FILE, index=False)
 
-# Menú por tipo de usuario
 if st.session_state["usuario"] == "admin":
     opciones_menu = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
 else:
@@ -241,15 +209,11 @@ menu = st.sidebar.selectbox("Menú", opciones_menu)
 df = st.session_state.datos
 
 with st.sidebar:
-    st.markdown("---")  # Línea divisoria
-
-    # Detectar centro si ya se ha seleccionado (en menú Agregar)
+    st.markdown("---")
     centro_actual = st.session_state.get("centro_actual", "52000 GERENCIA UENE")
-
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
     total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
-
     st.markdown(f"""
     <div style='
         background-color: #f8f9fa;
@@ -305,8 +269,8 @@ if menu == "Agregar":
         puede_guardar = False
     else:
         puede_guardar = True
-    
-   if st.button("Guardar", disabled=not puede_guardar):
+
+    if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha]],
                              columns=df.columns)
