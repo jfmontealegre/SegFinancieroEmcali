@@ -15,9 +15,9 @@ if "autenticado" not in st.session_state:
     st.session_state["autenticado"] = False
 
 if not st.session_state["autenticado"]:
-    st.markdown(f"""
+    st.markdown("""
         <style>
-            .login-container {{
+            .login-container {
                 background-color: #f7f9fc;
                 padding: 2rem;
                 border-radius: 15px;
@@ -26,36 +26,34 @@ if not st.session_state["autenticado"]:
                 max-width: 400px;
                 margin: 3rem auto;
                 font-family: 'Segoe UI', sans-serif;
-            }}
-            .login-container img {{
-                width: 130px;
-                margin-bottom: 1rem;
-            }}
-            .login-container h2 {{
+            }
+            .login-container h2 {
                 color: #212529;
                 margin-bottom: 2rem;
-            }}
+            }
         </style>
-        <div class="login-container">
-            st.image(LOGO_TANGARA, width=130)
-            <h2>🔒 Inicio de Sesión</h2>
     """, unsafe_allow_html=True)
 
-    usuario = st.text_input("Usuario")
-    contrasena = st.text_input("Contraseña", type="password")
-    login = st.button("Iniciar sesión")
+    with st.container():
+        st.markdown('<div class="login-container">', unsafe_allow_html=True)
+        st.image(LOGO_TANGARA, width=130)  # imagen correctamente insertada
+        st.markdown("## 🔒 Inicio de Sesión")
 
-    if login:
-        if usuario == "admin" and contrasena == "1234":
-            st.session_state["autenticado"] = True
-            st.success("✅ Bienvenida, sesión iniciada")
-            st.experimental_rerun()
-        else:
-            st.warning("⚠️ Usuario o contraseña incorrectos")
+        usuario = st.text_input("Usuario")
+        contrasena = st.text_input("Contraseña", type="password")
+        login = st.button("Iniciar sesión")
 
-    st.markdown("</div>", unsafe_allow_html=True)
-    st.stop()
+        if login:
+            if usuario == "admin" and contrasena == "1234":
+                st.session_state["autenticado"] = True
+                st.success("✅ Bienvenida, sesión iniciada")
+                st.rerun()  # ← CORREGIDO
+            else:
+                st.warning("⚠️ Usuario o contraseña incorrectos")
 
+        st.markdown("</div>", unsafe_allow_html=True)
+        st.stop()
+        
 # Estilos
 st.markdown("""
 <style>
