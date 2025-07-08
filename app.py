@@ -9,9 +9,6 @@ st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 # Mostrar el logo en la barra lateral
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
-# Configuración inicial
-st.set_page_config(page_title="Inicio de Sesión", layout="centered")
-
 LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
 if "autenticado" not in st.session_state:
@@ -59,7 +56,7 @@ if not st.session_state["autenticado"]:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-# BLOQUE CORREGIDO
+# Estilos
 st.markdown("""
 <style>
     html, body, [class*="css"] {
@@ -85,31 +82,23 @@ st.markdown("""
     }
     .stButton > button:hover {
         background-color: #cc4d12;
-        color: white;
-    }
-    .stTextInput, .stNumberInput, .stSelectbox {
-        font-size: 16px;
-    }
-    .main {
-        background-color: #ffffff;
-        border-radius: 15px;
-        padding: 2rem;
-        box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
-    }
-    div[data-testid="stDecoration"] {
-        display: none;
     }
 </style>
 """, unsafe_allow_html=True)
 
+# Credenciales
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
     "usuario": {"password": "abcd", "centros": ["52000"]},
     "jtandrade": {"password": "5678", "centros": ["52012"]}
 }
 
+# Autenticación secundaria
+if "logueado" not in st.session_state:
+    st.session_state["logueado"] = False
+
 def mostrar_login():
-    st.title("\\U0001F512 Inicio de Sesión")
+    st.title("🔐 Inicio de Sesión")
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
@@ -131,32 +120,26 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-if "logueado" not in st.session_state:
-    st.session_state["logueado"] = False
-
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
 else:
     mostrar_logout()
 
+# Encabezado principal
 col1, col2 = st.columns([1, 10])
-
 with col1:
     st.image("icono-energia.png", width=90)
-
 with col2:
-    st.markdown(
-        """
+    st.markdown("""
         <div style='display: flex; flex-direction: column; justify-content: center;'>
-            <h1 style='font-family: "Prometo", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
+            <h1 style='font-family: "Segoe UI", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
                 Gestión Presupuestal UENE 2026
             </h1>
         </div>
-        """,
-        unsafe_allow_html=True
-    )
+        """, unsafe_allow_html=True)
 
+# Archivos base
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
 
@@ -203,37 +186,33 @@ def registrar_bitacora(accion, usuario, item):
         nueva = fila
     nueva.to_csv(BITACORA_FILE, index=False)
 
-if st.session_state["usuario"] == "admin":
-    opciones_menu = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
-else:
-    opciones_menu = ["Agregar", "Ver Todo"]
+# Menú
+opciones_admin = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
+opciones_usuario = ["Agregar", "Ver Todo"]
 
-menu = st.sidebar.selectbox("Menú", opciones_menu)
-
+menu = st.sidebar.selectbox("Menú", opciones_admin if st.session_state["usuario"] == "admin" else opciones_usuario)
 df = st.session_state.datos
 
+# Tarjeta lateral de saldo
 with st.sidebar:
-    st.markdown("---")  # Línea divisoria
-
-    centro_actual = st.session_state.get("centro_actual", "52000 GERENCIA UENE")
+    st.markdown("---")
+    centro_actual = st.session_state.get("centro_actual", "52000")
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    total_gastado = df.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
-
-    # HTML embebido en Markdown, asegurándose que el string está bien cerrado
     st.markdown(f"""
-<div style="background-color: #f8f9fa; border: 2px solid #ef5f17; border-radius: 10px;
-            padding: 1rem; margin-top: 1rem; font-size: 14px; font-family: Segoe UI, sans-serif;">
-    <h4 style="color:#ef5f17; margin:0;">&#128188; {centro_actual}</h4>
-    <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
-    <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
-    <p style="margin:0;"><strong>Saldo:</strong> 
-        <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
-            ${saldo_disponible:,.2f}
-        </span>
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    <div style="background-color: #f8f9fa; border: 2px solid #ef5f17; border-radius: 10px;
+                padding: 1rem; margin-top: 1rem; font-size: 14px; font-family: Segoe UI, sans-serif;">
+        <h4 style="color:#ef5f17; margin:0;">💼 {centro_actual}</h4>
+        <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
+        <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
+        <p style="margin:0;"><strong>Saldo:</strong> 
+            <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
+                ${saldo_disponible:,.2f}
+            </span>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if menu == "Agregar":
