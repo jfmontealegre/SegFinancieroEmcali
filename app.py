@@ -59,7 +59,7 @@ if not st.session_state["autenticado"]:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
-st.markdown(\"\"\"
+st.markdown("""
 <style>
     html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
