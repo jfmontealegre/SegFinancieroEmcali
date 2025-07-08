@@ -59,6 +59,7 @@ if not st.session_state["autenticado"]:
     st.markdown("</div>", unsafe_allow_html=True)
     st.stop()
 
+# BLOQUE CORREGIDO
 st.markdown("""
 <style>
     html, body, [class*="css"] {
@@ -100,7 +101,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-"""
 
 credenciales = {
     "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
