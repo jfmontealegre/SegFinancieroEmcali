@@ -252,6 +252,9 @@ if menu == "Agregar":
         st.session_state.contador_item += 1
         st.success("✅ Registro guardado correctamente")
 
+        st.rerun()  # Esto actualiza todo el layout, incluyendo el resumen de gastos
+
+
     if not st.session_state.datos.empty:
         st.subheader("📋 Registros Agregados")
         st.dataframe(st.session_state.datos, use_container_width=True)
@@ -261,9 +264,6 @@ if menu == "Agregar":
         # Registrar en bitácora (ahora sí, item ya está definido)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.success("✅ Registro guardado correctamente")
-    if not st.session_state.datos.empty:
-        st.subheader("📋 Registros Agregados")
-        st.dataframe(st.session_state.datos, use_container_width=True)
 
 elif menu == "Buscar":
     st.subheader("🔍 Buscar por Ítem")
