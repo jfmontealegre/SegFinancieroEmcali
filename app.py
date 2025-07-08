@@ -11,48 +11,6 @@ st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
 LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
-if "autenticado" not in st.session_state:
-    st.session_state["autenticado"] = False
-    
-if not st.session_state["autenticado"]:
-    st.markdown("""
-        <style>
-            .login-container {
-                background-color: #f7f9fc;
-                padding: 2rem;
-                border-radius: 15px;
-                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-                text-align: center;
-                max-width: 400px;
-                margin: 3rem auto;
-                font-family: 'Segoe UI', sans-serif;
-            }
-            .login-container h2 {
-                color: #212529;
-                margin-bottom: 2rem;
-            }
-        </style>
-    """, unsafe_allow_html=True)
-
-    with st.container():
-        st.markdown('<div class="login-container">', unsafe_allow_html=True)
-        st.image(LOGO_TANGARA, width=130)  # imagen correctamente insertada
-        st.markdown("## 🔒 Inicio de Sesión")
-
-        usuario = st.text_input("Usuario")
-        contrasena = st.text_input("Contraseña", type="password")
-        login = st.button("Iniciar sesión")
-
-        if login:
-            if usuario == "admin" and contrasena == "1234":
-                st.session_state["autenticado"] = True
-                st.success("✅ Bienvenida, sesión iniciada")
-                st.rerun()  # ← CORREGIDO
-            else:
-                st.warning("⚠️ Usuario o contraseña incorrectos")
-
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.stop()
         
 # Estilos
 st.markdown("""
@@ -94,7 +52,25 @@ credenciales = {
 # Autenticación secundaria
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
-
+def mostrar_login():
+    st.markdown(f"""
+        <div style="text-align: center;">
+            <img src="https://raw.githubusercontent.com/tu-usuario/tu-repo/main/Pajaro_Tangara_2.png" width="130">
+        </div>
+    """, unsafe_allow_html=True)
+    st.title("🔐 Inicio de Sesión")
+    username = st.text_input("Usuario")
+    password = st.text_input("Contraseña", type="password")
+    if st.button("Iniciar sesión"):
+        if username in credenciales and credenciales[username]["password"] == password:
+            st.session_state["logueado"] = True
+            st.session_state["usuario"] = username
+            st.session_state["centros_autorizados"] = credenciales[username]["centros"]
+            st.success(f"Bienvenido, {username}!")
+            st.rerun()
+        else:
+            st.error("❌ Usuario o contraseña incorrectos")
+            
 def mostrar_login():
     st.title("🔐 Inicio de Sesión")
     username = st.text_input("Usuario")
