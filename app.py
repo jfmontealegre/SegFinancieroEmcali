@@ -209,25 +209,33 @@ menu = st.sidebar.selectbox("Menú", opciones_menu)
 df = st.session_state.datos
 
 with st.sidebar:
+    st.markdown("---")  # Línea divisoria
 
-st.markdown(f"""
-<div style="background-color: #f8f9fa;
-            border: 2px solid #ef5f17;
-            border-radius: 10px;
-            padding: 1rem;
-            margin-top: 1rem;
-            font-size: 14px;
-            font-family: Segoe UI, sans-serif;">
-    <h4 style="color:#ef5f17; margin:0;">&#128188; {centro_actual}</h4>
-    <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
-    <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
-    <p style="margin:0;"><strong>Saldo:</strong> 
-        <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
-            ${saldo_disponible:,.2f}
-        </span>
-    </p>
-</div>
-""", unsafe_allow_html=True)
+    # Detectar centro si ya se ha seleccionado (en menú Agregar)
+    centro_actual = st.session_state.get("centro_actual", "52000 GERENCIA UENE")
+
+    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    saldo_disponible = ingreso_asignado - total_gastado
+
+    st.markdown(f"""
+    <div style='
+        background-color: #f8f9fa;
+        border: 2px solid #ef5f17;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+        font-size: 14px;
+        font-family: Segoe UI, sans-serif;
+    '>
+        <h4 style='color:#ef5f17; margin:0;'>💼 {centro_actual}</h4>
+        <p style='margin:0;'><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
+        <p style='margin:0;'><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
+        <p style='margin:0;'><strong>Saldo:</strong> 
+            <span style='color:{'red' if saldo_disponible < 0 else 'green'};'>${saldo_disponible:,.2f}</span>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if menu == "Agregar":
