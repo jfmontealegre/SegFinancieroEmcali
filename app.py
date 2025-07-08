@@ -9,6 +9,61 @@ st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 # Mostrar el logo en la barra lateral
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
+# Configuración inicial
+st.set_page_config(page_title="Inicio de Sesión", layout="centered")
+
+# Ruta relativa del archivo
+LOGO_TANGARA = "Pajaro_Tangara_2.png"  # Asegúrate que esté en la misma carpeta del script
+
+# Inicializar autenticación si no existe
+if "autenticado" not in st.session_state:
+    st.session_state["autenticado"] = False
+
+# Solo mostrar login si no está autenticado
+if not st.session_state["autenticado"]:
+    # Fondo suave con logo e inicio de sesión
+    st.markdown(f"""
+        <style>
+            .login-container {{
+                background-color: #f7f9fc;
+                padding: 2rem;
+                border-radius: 15px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                text-align: center;
+                max-width: 400px;
+                margin: 3rem auto;
+                font-family: 'Segoe UI', sans-serif;
+            }}
+            .login-container img {{
+                width: 130px;
+                margin-bottom: 1rem;
+            }}
+            .login-container h2 {{
+                color: #212529;
+                margin-bottom: 2rem;
+            }}
+        </style>
+        <div class="login-container">
+            <img src="{LOGO_TANGARA}" alt="Tangara Logo">
+            <h2>🔒 Inicio de Sesión</h2>
+    """, unsafe_allow_html=True)
+
+    usuario = st.text_input("Usuario")
+    contrasena = st.text_input("Contraseña", type="password")
+    login = st.button("Iniciar sesión")
+
+    if login:
+        if usuario == "admin" and contrasena == "admin123":  # Cambia esto por tu validación real
+            st.session_state["autenticado"] = True
+            st.success("✅ Bienvenida, sesión iniciada")
+            st.experimental_rerun()
+        else:
+            st.warning("⚠️ Usuario o contraseña incorrectos")
+
+    # Cierra el div de la caja de login
+    st.markdown("</div>", unsafe_allow_html=True)
+    st.stop()
+    
 # Estilo corporativo personalizado
 st.markdown("""
 <style>
@@ -240,7 +295,18 @@ if menu == "Agregar":
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
 
-    if st.button("Guardar"):
+    # Verificar si el total calculado supera el ingreso asignado
+    total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
+    ingreso_disponible = obtener_ingreso_asignado(centro)
+    nuevo_total_proyectado = total_gastado_ajustado + total
+
+    if nuevo_total_proyectado > ingreso_disponible:
+        st.warning(f"⚠️ El valor total proyectado (${nuevo_total_proyectado:,.2f}) supera el Ingreso Asignado (${ingreso_disponible:,.2f}). No se puede guardar.")
+        puede_guardar = False
+    else:
+        puede_guardar = True
+    
+   if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha]],
                              columns=df.columns)
