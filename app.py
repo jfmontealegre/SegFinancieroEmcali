@@ -71,19 +71,6 @@ def mostrar_login():
         else:
             st.error("❌ Usuario o contraseña incorrectos")
             
-def mostrar_login():
-    st.title("🔐 Inicio de Sesión")
-    username = st.text_input("Usuario")
-    password = st.text_input("Contraseña", type="password")
-    if st.button("Iniciar sesión"):
-        if username in credenciales and credenciales[username]["password"] == password:
-            st.session_state["logueado"] = True
-            st.session_state["usuario"] = username
-            st.session_state["centros_autorizados"] = credenciales[username]["centros"]
-            st.success(f"Bienvenido, {username}!")
-            st.rerun()
-        else:
-            st.error("❌ Usuario o contraseña incorrectos")
 
 def mostrar_logout():
     with st.sidebar:
