@@ -42,12 +42,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Credenciales
-credenciales = {
-    "admin": {"password": "1234", "centros": ["52000", "52010", "52012", "51000", "51010"]},
-    "usuario": {"password": "abcd", "centros": ["52000"]},
-    "jtandrade": {"password": "5678", "centros": ["52012"]}
-}
+@st.cache_data
+def cargar_usuarios(path):
+    df_login = pd.read_excel(path, sheet_name="Login")
+    credenciales = {
+        row["Usuario"]: {
+            "password": str(row["Clave"]),
+            "centros": [row["Unidad"]]
+        }
+        for _, row in df_login.iterrows()
+    }
+    return credenciales
 
 # Autenticación secundaria
 if "logueado" not in st.session_state:
