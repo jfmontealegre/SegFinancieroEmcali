@@ -111,6 +111,26 @@ with col2:
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
 
+
+st.markdown("#### Categorías Relacionadas")
+col1, col2 = st.columns(2)
+with col1:
+    agop = st.checkbox("AGOP")
+    tres_uno = st.checkbox("3.1")
+with col2:
+    contratos = st.checkbox("Contratos")
+    otros = st.checkbox("Otros")
+
+# Puedes agrupar los seleccionados en una lista o cadena
+categorias_seleccionadas = []
+if agop: categorias_seleccionadas.append("AGOP")
+if tres_uno: categorias_seleccionadas.append("3.1")
+if contratos: categorias_seleccionadas.append("Contratos")
+if otros: categorias_seleccionadas.append("Otros")
+
+# (opcional) mostrar resumen:
+st.markdown(f"**Seleccionado(s):** {', '.join(categorias_seleccionadas) if categorias_seleccionadas else 'Ninguno'}")
+
 @st.cache_data
 def cargar_relaciones(path):
     hojas = pd.read_excel(path, sheet_name=None)
