@@ -147,7 +147,7 @@ if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
         "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
         "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha",
-        "Categorías"
+        "Categorias"
     ])
 
 def obtener_ingreso_asignado(centro):
@@ -245,7 +245,7 @@ if menu == "Agregar":
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                 descripcion, cantidad, valor_unitario, total, fecha,
                                 ', '.join(categorias_seleccionadas)]],
-                                columns=df.columns.tolist() + ["Categorías"])
+                                columns=df.columns.tolist() + ["Categorias"])
         
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
