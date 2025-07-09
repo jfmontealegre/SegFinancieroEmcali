@@ -146,8 +146,7 @@ grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df 
 if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
         "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
-        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha",
-        "Categorias"
+        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha", "Categorías"
     ])
 
 def obtener_ingreso_asignado(centro):
@@ -243,10 +242,9 @@ if menu == "Agregar":
 
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                                descripcion, cantidad, valor_unitario, total, fecha,
-                                ', '.join(categorias_seleccionadas)]],
-                                columns=df.columns.tolist() + ["Categorias"])
-        
+                        descripcion, cantidad, valor_unitario, total, fecha,
+                           ', '.join(categorias_seleccionadas)]],
+                        columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
