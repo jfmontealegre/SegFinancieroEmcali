@@ -241,16 +241,16 @@ if menu == "Agregar":
         puede_guardar = True
 
     if st.button("Guardar", disabled=not puede_guardar):
-       nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                       descripcion, cantidad, valor_unitario, total, fecha,
-                       ', '.join(categorias_seleccionadas)]],
-                     columns=df.columns.tolist() + ["Categorías"])
-        st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
-        registrar_bitacora("Agregar", st.session_state["usuario"], item)
-        st.session_state.contador_item += 1
-        st.success("✅ Registro guardado correctamente")
+    nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
+                           descripcion, cantidad, valor_unitario, total, fecha,
+                           ', '.join(categorias_seleccionadas)]],
+                         columns=df.columns.tolist() + ["Categorías"])
 
-        st.rerun()  # Esto actualiza todo el layout, incluyendo el resumen de gastos
+    st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
+    registrar_bitacora("Agregar", st.session_state["usuario"], item)
+    st.session_state.contador_item += 1
+    st.success("✅ Registro guardado correctamente")
+    st.rerun()  # Esto actualiza todo el layout, incluyendo el resumen de gastos
 
 
     if not st.session_state.datos.empty:
