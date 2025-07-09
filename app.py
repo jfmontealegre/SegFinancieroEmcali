@@ -53,14 +53,16 @@ def cargar_usuarios(path):
         for _, row in df_login.iterrows()
     }
     return credenciales
+        
+credenciales = cargar_usuarios("presupuesto.xlsx")
 
 # Autenticación secundaria
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
 def mostrar_login():
-    st.markdown(f"""
+    st.markdown("""
         <div style="text-align: center;">
-            <img src="https://raw.githubusercontent.com/tu-usuario/tu-repo/main/Pajaro_Tangara_2.png" width="130">
+            <img src="LOGO_TANGARA" width="130">
         </div>
     """, unsafe_allow_html=True)
     st.title("🔐 Inicio de Sesión")
