@@ -3,6 +3,13 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import os
+import joblib
+
+@st.cache_resource
+def cargar_modelo_clasificador():
+    return joblib.load("modelo_presupuesto_uene.pkl")
+
+modelo_clasificador = cargar_modelo_clasificador()
 
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
@@ -239,6 +246,25 @@ if menu == "Agregar":
         puede_guardar = False
     else:
         puede_guardar = True
+# Construir texto para entrada del modelo
+entrada_modelo = (
+    f"{grupo} {concepto} {descripcion.lower()} "
+    f"{' '.join(categorias_seleccionadas).lower()} "
+    f"{centro.lower()} {unidad.lower()}"
+)
+
+# Ejecutar predicción
+agrupador_predicho, proyecto_predicho, pospre_predicho = modelo_clasificador.predict([entrada_modelo])[0]
+
+# Mostrar predicción
+st.markdown(f"""
+<div style="border: 1px solid #ef5f17; padding: 10px; border-radius: 10px; background-color: #fffaf3;">
+    <b>🧠 Predicción automática:</b><br>
+    • Agrupador: <code>{agrupador_predicho}</code><br>
+    • Proyecto: <code>{proyecto_predicho}</code><br>
+    • Pospre: <code>{pospre_predicho}</code>
+</div>
+""", unsafe_allow_html=True)
 
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
