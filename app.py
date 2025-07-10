@@ -153,7 +153,7 @@ grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df 
 if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
         "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
-        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha", "Categorías"
+        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha", "Categorías", "Agrupador ML", "Proyecto ML", "Pospre ML"
     ])
 
 def obtener_ingreso_asignado(centro):
