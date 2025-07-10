@@ -213,11 +213,9 @@ with st.sidebar:
 if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
 
-    # Inicializa el contador si no existe
     if "contador_item" not in st.session_state:
         st.session_state.contador_item = 1
 
-    # Generar Ítem automáticamente
     item = f"G{st.session_state.contador_item:04}"  # G0001, G0002, etc.
     st.text_input("Ítem", value=item, disabled=True)
 
@@ -236,47 +234,47 @@ if menu == "Agregar":
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
 
-    # Verificar si el total calculado supera el ingreso asignado
+    # 🧠 PREDICCIÓN AUTOMÁTICA
+    entrada_modelo = (
+        f"{grupo} {concepto} {descripcion.lower()} "
+        f"{' '.join(categorias_seleccionadas).lower()} "
+        f"{centro.lower()} {unidad.lower()}"
+    )
+
+    agrupador_predicho, proyecto_predicho, pospre_predicho = modelo_clasificador.predict([entrada_modelo])[0]
+
+    st.markdown(f"""
+    <div style="border: 1px solid #ef5f17; padding: 10px; border-radius: 10px; background-color: #fffaf3;">
+        <b>🧠 Clasificación automática:</b><br>
+        • Agrupador: <code>{agrupador_predicho}</code><br>
+        • Proyecto: <code>{proyecto_predicho}</code><br>
+        • Pospre: <code>{pospre_predicho}</code>
+    </div>
+    """, unsafe_allow_html=True)
+
     total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
     ingreso_disponible = obtener_ingreso_asignado(centro)
     nuevo_total_proyectado = total_gastado_ajustado + total
 
-    if nuevo_total_proyectado > ingreso_disponible:
+    puede_guardar = nuevo_total_proyectado <= ingreso_disponible
+    if not puede_guardar:
         st.warning(f"⚠️ El valor total proyectado (${nuevo_total_proyectado:,.2f}) supera el Ingreso Asignado (${ingreso_disponible:,.2f}). No se puede guardar.")
-        puede_guardar = False
-    else:
-        puede_guardar = True
-# Construir texto para entrada del modelo
-entrada_modelo = (
-    f"{grupo} {concepto} {descripcion.lower()} "
-    f"{' '.join(categorias_seleccionadas).lower()} "
-    f"{centro.lower()} {unidad.lower()}"
-)
-
-# Ejecutar predicción
-agrupador_predicho, proyecto_predicho, pospre_predicho = modelo_clasificador.predict([entrada_modelo])[0]
-
-# Mostrar predicción
-st.markdown(f"""
-<div style="border: 1px solid #ef5f17; padding: 10px; border-radius: 10px; background-color: #fffaf3;">
-    <b>🧠 Predicción automática:</b><br>
-    • Agrupador: <code>{agrupador_predicho}</code><br>
-    • Proyecto: <code>{proyecto_predicho}</code><br>
-    • Pospre: <code>{pospre_predicho}</code>
-</div>
-""", unsafe_allow_html=True)
 
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                        descripcion, cantidad, valor_unitario, total, fecha,
-                           ', '.join(categorias_seleccionadas)]],
-                        columns=df.columns)
-        st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
+                               descripcion, cantidad, valor_unitario, total,
+                               fecha, ', '.join(categorias_seleccionadas),
+                               agrupador_predicho, proyecto_predicho, pospre_predicho]],
+                             columns=[
+                                 "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
+                                 "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total",
+                                 "Fecha", "Categorías", "Agrupador ML", "Proyecto ML", "Pospre ML"
+                             ])
+        st.session_state.datos = pd.concat([st.session_state.datos, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
         st.success("✅ Registro guardado correctamente")
-        st.rerun()  # Esto actualiza todo el layout, incluyendo el resumen de gastos
-
+        st.rerun()
 
     if not st.session_state.datos.empty:
         st.subheader("📋 Registros Agregados")
