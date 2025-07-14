@@ -168,10 +168,10 @@ with st.sidebar:
 presupuesto_tab, dashboard_tab = st.tabs(["🧾 Presupuesto", "📊 Dashboard"])
 
 with presupuesto_tab:
-    col_logo, col_titulo = st.columns([2, 6])  # Ajusta proporciones según el tamaño del logo
+    col_logo, col_titulo = st.columns([1, 6])  # Ajusta proporciones según el tamaño del logo
 
     with col_logo:
-        st.image("icono-energia.png", width=90)
+        st.image("icono-energia.png", width=100)
     
     with col_titulo:
         st.markdown("<h1 style='margin-bottom: 0;'>Gestión Presupuestal UENE 2026</h1>", unsafe_allow_html=True)
