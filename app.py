@@ -89,25 +89,6 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-# Dentro del tab "Dashboard"
-tab1, = st.tabs(["📊 Dashboard"])
-
-with tab1:  # Asumimos que tab1 es tu pestaña "Dashboard"
-    st.subheader("📊 Dashboard Financiero")
-
-    # Obtener centro actual
-    centro_actual = st.session_state.get("centro_actual", "52000")
-
-    # Calcular valores requeridos
-    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
-    saldo_disponible = ingreso_asignado - total_gastado
-
-    # Mostrar métricas
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Ingreso Asignado", f"${ingreso_asignado:,.2f}")
-    col2.metric("Total Gastado", f"${total_gastado:,.2f}")
-    col3.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
         
 if not st.session_state["logueado"]:
@@ -115,6 +96,31 @@ if not st.session_state["logueado"]:
     st.stop()
 else:
     mostrar_logout()
+
+    # Tabs SOLO si está logueado
+    tab1, = st.tabs(["📊 Dashboard"])
+
+    with tab1:
+        st.markdown("### 📊 Dashboard Financiero")
+
+        centro_actual = st.session_state.get("centro_actual", "52000")
+        ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+        total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+        saldo_disponible = ingreso_asignado - total_gastado
+
+        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+
+        gastos_por_concepto = st.session_state.datos.groupby("Concepto de Gasto")["Total"].sum().reset_index()
+        fig = px.bar(
+            gastos_por_concepto,
+            x="Total",
+            y="Concepto de Gasto",
+            orientation="h",
+            title="Gastos por Concepto de Gasto",
+            color_discrete_sequence=["#ef5f17"]
+        )
+        fig.update_layout(yaxis=dict(categoryorder='total ascending'))
+        st.plotly_chart(fig)
 
 # Encabezado principal
 col1, col2 = st.columns([1, 10])
