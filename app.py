@@ -136,6 +136,34 @@ def registrar_bitacora(accion, usuario, item):
         nueva = fila
     nueva.to_csv(BITACORA_FILE, index=False)
 
+# Menú
+opciones_admin = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
+opciones_usuario = ["Agregar", "Ver Todo"]
+
+menu = st.sidebar.selectbox("Menú", opciones_admin if st.session_state["usuario"] == "admin" else opciones_usuario)
+df = st.session_state.datos
+
+# Tarjeta lateral de saldo
+with st.sidebar:
+    st.markdown("---")
+    centro_actual = st.session_state.get("centro_actual", "52000")
+    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+    total_gastado = df.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    saldo_disponible = ingreso_asignado - total_gastado
+    st.markdown(f"""
+    <div style="background-color: #f8f9fa; border: 2px solid #ef5f17; border-radius: 10px;
+                padding: 1rem; margin-top: 1rem; font-size: 14px; font-family: Segoe UI, sans-serif;">
+        <h4 style="color:#ef5f17; margin:0;">💼 {centro_actual}</h4>
+        <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
+        <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
+        <p style="margin:0;"><strong>Saldo:</strong> 
+            <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
+                ${saldo_disponible:,.2f}
+            </span>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
 # Tabs organizados
 presupuesto_tab, dashboard_tab = st.tabs(["🧾 Presupuesto", "📊 Dashboard"])
 
@@ -189,7 +217,18 @@ with presupuesto_tab:
             registrar_bitacora("Agregar", st.session_state["usuario"], item)
             st.session_state.contador_item += 1
             st.success("✅ Registro guardado correctamente")
-            st.rerun()
+            st.rerun()  # Esto actualiza todo el layout, incluyendo el resumen de gastos
+
+
+    if not st.session_state.datos.empty:
+        st.subheader("📋 Registros Agregados")
+        st.dataframe(st.session_state.datos, use_container_width=True)
+        
+    if "contador_item" not in st.session_state:
+        st.session_state.contador_item = 1
+        # Registrar en bitácora (ahora sí, item ya está definido)
+        registrar_bitacora("Agregar", st.session_state["usuario"], item)
+        st.success("✅ Registro guardado correctamente")
         
     elif menu == "Buscar":
         st.subheader("🔍 Buscar por Ítem")
