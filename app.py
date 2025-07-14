@@ -263,7 +263,7 @@ if menu == "Agregar":
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha,
                                categoria]],
-                             columns=df.columns.tolist() + ["Categoría"])
+                             columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
