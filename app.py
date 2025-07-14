@@ -4,8 +4,6 @@ from datetime import datetime
 import pytz
 import os
 
-modelo_clasificador = cargar_modelo_clasificador()
-
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
 # Mostrar el logo en la barra lateral
