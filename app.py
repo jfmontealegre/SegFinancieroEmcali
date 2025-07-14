@@ -155,119 +155,119 @@ with presupuesto_tab:
         st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
         if menu == "Agregar":
-        st.subheader("➕ Agregar Registro")
+            st.subheader("➕ Agregar Registro")
     
-        if "contador_item" not in st.session_state:
-            st.session_state.contador_item = 1
-    
-        item = f"G{st.session_state.contador_item:04}"
-        st.text_input("Ítem", value=item, disabled=True)
-    
-        grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
-        centros = obtener_centros(grupo)
-        centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
-        st.session_state["centro_actual"] = centro
-        unidades = obtener_unidades(centro)
-        unidad = st.selectbox("Unidad", unidades if unidades else ["-"])
-        conceptos = obtener_conceptos(centro)
-        concepto = st.selectbox("Concepto de Gasto", conceptos if conceptos else ["-"])
-        descripcion = st.text_area("Descripción del Gasto")
-        cantidad = st.number_input("Cantidad", min_value=1, format="%d")
-        valor_unitario = st.number_input("Valor Unitario", min_value=0.0, format="%.2f")
-        total = cantidad * valor_unitario
-        fecha = st.date_input("Fecha", value=datetime.today())
-        st.write(f"💲 **Total Calculado:** {total:,.2f}")
-        categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Otros"])
-    
-        total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
-        ingreso_disponible = obtener_ingreso_asignado(centro)
-        nuevo_total_proyectado = total_gastado_ajustado + total
-    
-        if nuevo_total_proyectado > ingreso_disponible:
-            st.warning(f"⚠️ El valor total proyectado (${nuevo_total_proyectado:,.2f}) supera el Ingreso Asignado (${ingreso_disponible:,.2f}). No se puede guardar.")
-            puede_guardar = False
-        else:
-            puede_guardar = True
-    
-        if st.button("Guardar", disabled=not puede_guardar):
-            nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                                   descripcion, cantidad, valor_unitario, total, fecha,
-                                   categoria]], columns=df.columns)
-            st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
-            registrar_bitacora("Agregar", st.session_state["usuario"], item)
-            st.session_state.contador_item += 1
-            st.success("✅ Registro guardado correctamente")
-            st.rerun()
-    
-    elif menu == "Buscar":
-        st.subheader("🔍 Buscar por Ítem")
-        buscar_item = st.text_input("Ingrese Ítem")
-        if st.button("Buscar"):
-            resultado = df[df["Ítem"] == buscar_item]
-            if not resultado.empty:
-                st.dataframe(resultado)
+            if "contador_item" not in st.session_state:
+                st.session_state.contador_item = 1
+        
+            item = f"G{st.session_state.contador_item:04}"
+            st.text_input("Ítem", value=item, disabled=True)
+        
+            grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
+            centros = obtener_centros(grupo)
+            centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
+            st.session_state["centro_actual"] = centro
+            unidades = obtener_unidades(centro)
+            unidad = st.selectbox("Unidad", unidades if unidades else ["-"])
+            conceptos = obtener_conceptos(centro)
+            concepto = st.selectbox("Concepto de Gasto", conceptos if conceptos else ["-"])
+            descripcion = st.text_area("Descripción del Gasto")
+            cantidad = st.number_input("Cantidad", min_value=1, format="%d")
+            valor_unitario = st.number_input("Valor Unitario", min_value=0.0, format="%.2f")
+            total = cantidad * valor_unitario
+            fecha = st.date_input("Fecha", value=datetime.today())
+            st.write(f"💲 **Total Calculado:** {total:,.2f}")
+            categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Otros"])
+        
+            total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
+            ingreso_disponible = obtener_ingreso_asignado(centro)
+            nuevo_total_proyectado = total_gastado_ajustado + total
+        
+            if nuevo_total_proyectado > ingreso_disponible:
+                st.warning(f"⚠️ El valor total proyectado (${nuevo_total_proyectado:,.2f}) supera el Ingreso Asignado (${ingreso_disponible:,.2f}). No se puede guardar.")
+                puede_guardar = False
             else:
-                st.warning("No se encontró el ítem")
-    
-    elif menu == "Editar":
-        st.subheader("✏️ Editar Registro")
-        editar_item = st.text_input("Ítem a editar")
-        if st.button("Cargar"):
-            resultado = df[df["Ítem"] == editar_item]
-            if not resultado.empty:
-                index = resultado.index[0]
-                registro = resultado.iloc[0]
-                grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique(), index=list(grupos_centros_df["Grupo"].unique()).index(registro["Grupo"]))
-                centros = obtener_centros(grupo)
-                centro = st.selectbox("Centro Gestor", centros, index=centros.index(registro["Centro Gestor"]))
-                unidades = obtener_unidades(centro)
-                unidad = st.selectbox("Unidad", unidades, index=unidades.index(registro["Unidad"]))
-                conceptos = obtener_conceptos(centro)
-                concepto = st.selectbox("Concepto de Gasto", conceptos, index=conceptos.index(registro["Concepto de Gasto"]))
-                descripcion = st.text_area("Descripción del Gasto", value=registro["Descripción del Gasto"])
-                cantidad = st.number_input("Cantidad", min_value=1, value=int(registro["Cantidad"]), format="%d")
-                valor_unitario = st.number_input("Valor Unitario", min_value=0.0, value=float(registro["Valor Unitario"]), format="%.2f")
-                total = cantidad * valor_unitario
-                fecha = st.date_input("Fecha", value=pd.to_datetime(registro["Fecha"]))
-                st.write(f"💲 **Total Calculado:** {total:,.2f}")
-                if st.button("Actualizar"):
-                    st.session_state.datos.at[index, "Grupo"] = grupo
-                    st.session_state.datos.at[index, "Centro Gestor"] = centro
-                    st.session_state.datos.at[index, "Unidad"] = unidad
-                    st.session_state.datos.at[index, "Concepto de Gasto"] = concepto
-                    st.session_state.datos.at[index, "Descripción del Gasto"] = descripcion
-                    st.session_state.datos.at[index, "Cantidad"] = cantidad
-                    st.session_state.datos.at[index, "Valor Unitario"] = valor_unitario
-                    st.session_state.datos.at[index, "Total"] = total
-                    st.session_state.datos.at[index, "Fecha"] = fecha
-                    registrar_bitacora("Editar", st.session_state["usuario"], editar_item)
-                    st.success("✅ Registro actualizado")
+                puede_guardar = True
+        
+            if st.button("Guardar", disabled=not puede_guardar):
+                nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
+                                       descripcion, cantidad, valor_unitario, total, fecha,
+                                       categoria]], columns=df.columns)
+                st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
+                registrar_bitacora("Agregar", st.session_state["usuario"], item)
+                st.session_state.contador_item += 1
+                st.success("✅ Registro guardado correctamente")
+                st.rerun()
+        
+        elif menu == "Buscar":
+            st.subheader("🔍 Buscar por Ítem")
+            buscar_item = st.text_input("Ingrese Ítem")
+            if st.button("Buscar"):
+                resultado = df[df["Ítem"] == buscar_item]
+                if not resultado.empty:
+                    st.dataframe(resultado)
+                else:
+                    st.warning("No se encontró el ítem")
+        
+        elif menu == "Editar":
+            st.subheader("✏️ Editar Registro")
+            editar_item = st.text_input("Ítem a editar")
+            if st.button("Cargar"):
+                resultado = df[df["Ítem"] == editar_item]
+                if not resultado.empty:
+                    index = resultado.index[0]
+                    registro = resultado.iloc[0]
+                    grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique(), index=list(grupos_centros_df["Grupo"].unique()).index(registro["Grupo"]))
+                    centros = obtener_centros(grupo)
+                    centro = st.selectbox("Centro Gestor", centros, index=centros.index(registro["Centro Gestor"]))
+                    unidades = obtener_unidades(centro)
+                    unidad = st.selectbox("Unidad", unidades, index=unidades.index(registro["Unidad"]))
+                    conceptos = obtener_conceptos(centro)
+                    concepto = st.selectbox("Concepto de Gasto", conceptos, index=conceptos.index(registro["Concepto de Gasto"]))
+                    descripcion = st.text_area("Descripción del Gasto", value=registro["Descripción del Gasto"])
+                    cantidad = st.number_input("Cantidad", min_value=1, value=int(registro["Cantidad"]), format="%d")
+                    valor_unitario = st.number_input("Valor Unitario", min_value=0.0, value=float(registro["Valor Unitario"]), format="%.2f")
+                    total = cantidad * valor_unitario
+                    fecha = st.date_input("Fecha", value=pd.to_datetime(registro["Fecha"]))
+                    st.write(f"💲 **Total Calculado:** {total:,.2f}")
+                    if st.button("Actualizar"):
+                        st.session_state.datos.at[index, "Grupo"] = grupo
+                        st.session_state.datos.at[index, "Centro Gestor"] = centro
+                        st.session_state.datos.at[index, "Unidad"] = unidad
+                        st.session_state.datos.at[index, "Concepto de Gasto"] = concepto
+                        st.session_state.datos.at[index, "Descripción del Gasto"] = descripcion
+                        st.session_state.datos.at[index, "Cantidad"] = cantidad
+                        st.session_state.datos.at[index, "Valor Unitario"] = valor_unitario
+                        st.session_state.datos.at[index, "Total"] = total
+                        st.session_state.datos.at[index, "Fecha"] = fecha
+                        registrar_bitacora("Editar", st.session_state["usuario"], editar_item)
+                        st.success("✅ Registro actualizado")
+                else:
+                    st.warning("Ítem no encontrado")
+        
+        elif menu == "Eliminar":
+            st.subheader("🗑️ Eliminar Registro")
+            eliminar_item = st.text_input("Ítem a eliminar")
+            if st.button("Eliminar"):
+                if eliminar_item in df["Ítem"].values:
+                    st.session_state.datos = df[df["Ítem"] != eliminar_item]
+                    registrar_bitacora("Eliminar", st.session_state["usuario"], eliminar_item)
+                    st.success("✅ Registro eliminado")
+                else:
+                    st.error("Ítem no encontrado")
+        
+        elif menu == "Ver Todo":
+            st.subheader("📋 Todos los Registros")
+            st.dataframe(df)
+        
+        elif menu == "Historial" and st.session_state["usuario"] == "admin":
+            st.subheader("🕓 Historial de Actividades")
+            if os.path.exists("bitacora_admin.csv"):
+                log = pd.read_csv("bitacora_admin.csv")
+                st.dataframe(log, use_container_width=True)
+                st.download_button("📥 Descargar Historial", data=log.to_csv(index=False), file_name="bitacora_admin.csv", mime="text/csv")
             else:
-                st.warning("Ítem no encontrado")
-    
-    elif menu == "Eliminar":
-        st.subheader("🗑️ Eliminar Registro")
-        eliminar_item = st.text_input("Ítem a eliminar")
-        if st.button("Eliminar"):
-            if eliminar_item in df["Ítem"].values:
-                st.session_state.datos = df[df["Ítem"] != eliminar_item]
-                registrar_bitacora("Eliminar", st.session_state["usuario"], eliminar_item)
-                st.success("✅ Registro eliminado")
-            else:
-                st.error("Ítem no encontrado")
-    
-    elif menu == "Ver Todo":
-        st.subheader("📋 Todos los Registros")
-        st.dataframe(df)
-    
-    elif menu == "Historial" and st.session_state["usuario"] == "admin":
-        st.subheader("🕓 Historial de Actividades")
-        if os.path.exists("bitacora_admin.csv"):
-            log = pd.read_csv("bitacora_admin.csv")
-            st.dataframe(log, use_container_width=True)
-            st.download_button("📥 Descargar Historial", data=log.to_csv(index=False), file_name="bitacora_admin.csv", mime="text/csv")
-        else:
-            st.info("No hay registros de historial aún.")
+                st.info("No hay registros de historial aún.")
 
 with dashboard_tab:
     st.markdown("### 📊 Dashboard Financiero")
