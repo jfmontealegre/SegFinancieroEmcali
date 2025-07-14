@@ -3,11 +3,6 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import os
-import joblib
-
-@st.cache_resource
-def cargar_modelo_clasificador():
-    return joblib.load("modelo_presupuesto_uene.pkl")
 
 modelo_clasificador = cargar_modelo_clasificador()
 
