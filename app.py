@@ -222,12 +222,12 @@ df = st.session_state.datos
 # Tarjeta lateral de saldo
 with st.sidebar:
     st.markdown("---")
-    centro_actual = st.session_state.get("centro_actual", "52000")
-ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
-saldo_disponible = ingreso_asignado - total_gastado
-# Ahora sí puedes usarla
-st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+        centro_actual = st.session_state.get("centro_actual", "52000")
+        ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+        total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+        saldo_disponible = ingreso_asignado - total_gastado
+        # Ahora sí puedes usarla
+        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
     st.markdown(f"""
     <div style="background-color: #f8f9fa; border: 2px solid #ef5f17; border-radius: 10px;
