@@ -5,6 +5,7 @@ import pytz
 import os
 import plotly.express as px
 from PIL import Image
+import altair as alt
 
 st.set_page_config(
     page_title="Presupuesto EMCALI",
@@ -175,7 +176,7 @@ with presupuesto_tab:
     col_logo, col_titulo = st.columns([1, 6])  # Ajusta proporciones según el tamaño del logo
 
     with col_logo:
-        st.image("icono-energia.png", width=100)
+        st.image("icono-energia.png", width=80)
     
     with col_titulo:
         st.markdown("<h1 style='margin-bottom: 0;'>Gestión Presupuestal UENE 2026</h1>", unsafe_allow_html=True)
@@ -317,6 +318,7 @@ with st.sidebar:
 
 with dashboard_tab:
     st.markdown("### 📊 Dashboard Financiero")
+
     centro_actual = st.session_state.get("centro_actual", "52000")
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
     total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
@@ -324,15 +326,29 @@ with dashboard_tab:
     st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
     if not st.session_state.datos.empty:
-        gastos_por_concepto = st.session_state.datos.groupby("Concepto de Gasto")["Total"].sum().reset_index()
-        fig = px.bar(
-            gastos_por_concepto,
-            x="Total",
-            y="Concepto de Gasto",
-            orientation="h",
-            title="Gastos por Concepto de Gasto",
-            color_discrete_sequence=["#ef5f17"]
+        gastos_por_concepto = (
+            st.session_state.datos
+            .query("`Centro Gestor` == @centro_actual")
+            .groupby("Concepto de Gasto")["Total"]
+            .sum()
+            .reset_index()
         )
-        fig.update_layout(yaxis=dict(categoryorder='total ascending'))
-        st.plotly_chart(fig)
- 
+
+        # Gráfico con Altair
+        chart = alt.Chart(gastos_por_concepto).mark_bar().encode(
+            x=alt.X('Total:Q', title='Total ($)', axis=alt.Axis(format='$,.0f')),
+            y=alt.Y('Concepto de Gasto:N', sort='-x', title=None),
+            color=alt.Color('Concepto de Gasto:N', legend=None)
+        ).properties(
+            width=700,
+            height=400,
+            title="Gastos por Concepto de Gasto"
+        ).configure_axis(
+            labelFontSize=12,
+            titleFontSize=14
+        ).configure_title(
+            fontSize=18,
+            anchor='start'
+        )
+
+        st.altair_chart(chart, use_container_width=True)
