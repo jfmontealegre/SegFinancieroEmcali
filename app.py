@@ -171,9 +171,6 @@ with presupuesto_tab:
     st.header("Gestión Presupuestal UENE 2026")
     st.image("icono-energia.png", width=90)
 
-    menu = st.sidebar.selectbox("Menú", ["Agregar", "Ver Todo"])
-    df = st.session_state.datos
-
     if menu == "Agregar":
         st.subheader("➕ Agregar Registro")
     
