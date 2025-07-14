@@ -64,11 +64,12 @@ def mostrar_login():
     tangara = Image.open("Pajaro_Tangara_2.png")
 
     col_logo, col_title = st.columns([1, 6])
-    with col_logo:
-        st.image(tangara, width=100)
+   
     with col_title:
         st.title("Inicio de Sesión")
-
+     with col_logo:
+        st.image(tangara, width=70)
+         
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
