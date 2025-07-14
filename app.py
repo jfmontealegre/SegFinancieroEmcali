@@ -5,10 +5,13 @@ import pytz
 import os
 import plotly.express as px
 
-st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
+st.set_page_config(
+    page_title="Presupuesto EMCALI",
+    page_icon="LOGO-EMCALI-vertical-color.png",  # 🟢 Ícono personalizado
+    layout="centered"
+)
 
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
-LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
 st.markdown("""
 <style>
@@ -165,8 +168,13 @@ with st.sidebar:
 presupuesto_tab, dashboard_tab = st.tabs(["🧾 Presupuesto", "📊 Dashboard"])
 
 with presupuesto_tab:
-    st.header("Gestión Presupuestal UENE 2026")
-    st.image("icono-energia.png", width=90)
+    col_logo, col_titulo = st.columns([1, 6])  # Ajusta proporciones según el tamaño del logo
+
+    with col_logo:
+        st.image("LOGO-EMCALI-vertical-color.png", width=60)
+    
+    with col_titulo:
+        st.markdown("<h1 style='margin-bottom: 0;'>Gestión Presupuestal UENE 2026</h1>", unsafe_allow_html=True)
 
     if menu == "Agregar":
         st.subheader("➕ Agregar Registro")
