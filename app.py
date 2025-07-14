@@ -176,7 +176,8 @@ with presupuesto_tab:
         
         item = f"G{st.session_state.contador_item:04}"
         st.text_input("Ítem", value=item, disabled=True)
-        
+
+        categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Vigencias Futuras"])
         grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
         centros = obtener_centros(grupo)
         centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
@@ -191,7 +192,7 @@ with presupuesto_tab:
         total = cantidad * valor_unitario
         fecha = st.date_input("Fecha", value=datetime.today())
         st.write(f"💲 **Total Calculado:** {total:,.2f}")
-        categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Otros"])
+       
         
         total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
         ingreso_disponible = obtener_ingreso_asignado(centro)
