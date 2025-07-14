@@ -316,7 +316,65 @@ with dashboard_tab:
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
     total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
-    st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+
+    # Barra de resumen tipo tarjetas
+    st.markdown("""
+    <style>
+    .card-container {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .card {
+        background-color: #f8f9fa;
+        border: 2px solid #ef5f17;
+        border-radius: 12px;
+        padding: 1rem;
+        flex: 1;
+        box-shadow: 0px 4px 8px rgba(0,0,0,0.05);
+        text-align: center;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .card h1 {
+        margin: 0;
+        font-size: 1.7rem;
+        color: #ef5f17;
+    }
+    .card small {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+    </style>
+    <div class="card-container">
+        <div class="card">
+            <div>💰</div>
+            <h1>${:,.2f}</h1>
+            <small>Ingreso Asignado</small>
+        </div>
+        <div class="card">
+            <div>🧾</div>
+            <h1>${:,.2f}</h1>
+            <small>Total Ejecutado</small>
+        </div>
+        <div class="card">
+            <div>💸</div>
+            <h1 style="color:{}">${:,.2f}</h1>
+            <small>Saldo Disponible</small>
+        </div>
+        <div class="card">
+            <div>📂</div>
+            <h1 style="color:#007bff;">{}</h1>
+            <small>Registros Cargados</small>
+        </div>
+    </div>
+    """.format(
+        ingreso_asignado,
+        total_gastado,
+        "#dc3545" if saldo_disponible < 0 else "#28a745",
+        saldo_disponible,
+        st.session_state.datos.query("`Centro Gestor` == @centro_actual").shape[0]
+    ), unsafe_allow_html=True)
 
     if not st.session_state.datos.empty:
 
@@ -408,3 +466,4 @@ with dashboard_tab:
             )
 
             st.altair_chart(donut, use_container_width=True)
+
