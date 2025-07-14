@@ -157,9 +157,6 @@ with st.sidebar:
         <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
         <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
         <p style="margin:0;"><strong>Saldo:</strong> 
-            <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
-                ${saldo_disponible:,.2f}
-            </span>
         </p>
     </div>
     """, unsafe_allow_html=True)
