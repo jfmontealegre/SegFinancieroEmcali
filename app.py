@@ -112,15 +112,6 @@ RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
 
 
-st.markdown("#### Categorías Relacionadas")
-col1, col2 = st.columns(2)
-with col1:
-    agop = st.checkbox("AGOP")
-    tres_uno = st.checkbox("3.1")
-with col2:
-    contratos = st.checkbox("Contratos")
-    otros = st.checkbox("Otros")
-
 # Puedes agrupar los seleccionados en una lista o cadena
 st.markdown("""
 <style>
@@ -152,7 +143,8 @@ categoria = st.radio(
 
 
 # (opcional) mostrar resumen:
-st.markdown(f"**Seleccionado(s):** {', '.join(categorias_seleccionadas) if categorias_seleccionadas else 'Ninguno'}")
+st.markdown(f"**Seleccionado:** {categoria}")
+
 
 @st.cache_data
 def cargar_relaciones(path):
