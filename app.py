@@ -319,29 +319,92 @@ with dashboard_tab:
     st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
     if not st.session_state.datos.empty:
+
+        datos_centro = st.session_state.datos.query("`Centro Gestor` == @centro_actual")
+
+        # 1. Gráfico de barras por Concepto de Gasto
+        st.markdown("#### 📌 ¿En qué se está gastando más?")
         gastos_por_concepto = (
-            st.session_state.datos
-            .query("`Centro Gestor` == @centro_actual")
+            datos_centro
             .groupby("Concepto de Gasto")["Total"]
             .sum()
             .reset_index()
         )
 
-        # Gráfico con Altair
-        chart = alt.Chart(gastos_por_concepto).mark_bar().encode(
+        chart_conceptos = alt.Chart(gastos_por_concepto).mark_bar().encode(
             x=alt.X('Total:Q', title='Total ($)', axis=alt.Axis(format='$,.0f')),
             y=alt.Y('Concepto de Gasto:N', sort='-x', title=None),
-            color=alt.Color('Concepto de Gasto:N', legend=None)
+            color=alt.Color('Concepto de Gasto:N', legend=None),
+            tooltip=["Concepto de Gasto", "Total"]
         ).properties(
             width=700,
             height=400,
             title="Gastos por Concepto de Gasto"
-        ).configure_axis(
-            labelFontSize=12,
-            titleFontSize=14
-        ).configure_title(
-            fontSize=18,
-            anchor='start'
         )
 
-        st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart_conceptos, use_container_width=True)
+
+        # 2. Barras agrupadas por Categoría y Concepto
+        st.markdown("#### 🔍 Comparativa por Categoría y Concepto")
+        if "Categoría" in datos_centro.columns:
+            gastos_categoria = (
+                datos_centro
+                .groupby(["Categoría", "Concepto de Gasto"])["Total"]
+                .sum()
+                .reset_index()
+            )
+
+            chart_categoria = alt.Chart(gastos_categoria).mark_bar().encode(
+                x=alt.X("Concepto de Gasto:N", title="Concepto"),
+                y=alt.Y("Total:Q", title="Total ($)", axis=alt.Axis(format='$,.0f')),
+                color="Categoría:N",
+                column=alt.Column("Categoría:N", title=""),
+                tooltip=["Categoría", "Concepto de Gasto", "Total"]
+            ).properties(height=350).configure_view(stroke=None)
+
+            st.altair_chart(chart_categoria, use_container_width=True)
+
+        # 3. Línea temporal de gastos
+        st.markdown("#### 🕓 Evolución de los Gastos en el Tiempo")
+        if "Fecha" in datos_centro.columns:
+            datos_centro["Fecha"] = pd.to_datetime(datos_centro["Fecha"])
+            gastos_tiempo = (
+                datos_centro
+                .groupby(pd.Grouper(key="Fecha", freq="M"))["Total"]
+                .sum()
+                .reset_index()
+            )
+
+            chart_linea = alt.Chart(gastos_tiempo).mark_line(point=True).encode(
+                x=alt.X("Fecha:T", title="Mes"),
+                y=alt.Y("Total:Q", title="Total Acumulado", axis=alt.Axis(format='$,.0f')),
+                tooltip=["Fecha", "Total"]
+            ).properties(
+                width=700,
+                height=300,
+                title="Gastos Mensuales Acumulados"
+            )
+
+            st.altair_chart(chart_linea, use_container_width=True)
+
+        # 4. Donut de distribución por Unidad
+        st.markdown("#### 🧩 Distribución por Unidad")
+        if "Unidad" in datos_centro.columns:
+            gastos_unidad = (
+                datos_centro
+                .groupby("Unidad")["Total"]
+                .sum()
+                .reset_index()
+            )
+
+            donut = alt.Chart(gastos_unidad).mark_arc(innerRadius=50).encode(
+                theta="Total:Q",
+                color="Unidad:N",
+                tooltip=["Unidad", "Total"]
+            ).properties(
+                width=400,
+                height=400,
+                title="Participación por Unidad"
+            )
+
+            st.altair_chart(donut, use_container_width=True)
