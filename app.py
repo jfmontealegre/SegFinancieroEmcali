@@ -67,7 +67,7 @@ def mostrar_login():
    
     with col_title:
         st.title("Inicio de Sesión")
-     with col_logo:
+    with col_logo:
         st.image(tangara, width=70)
          
     username = st.text_input("Usuario")
