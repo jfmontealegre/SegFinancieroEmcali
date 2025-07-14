@@ -190,7 +190,7 @@ with presupuesto_tab:
         item = f"G{st.session_state.contador_item:04}"
         st.text_input("Ítem", value=item, disabled=True)
 
-        categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Vigencias Futuras"])
+        categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Vigencias Futuras"], horizontal=True)
         grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
         centros = obtener_centros(grupo)
         centro = st.selectbox("Centro Gestor", centros if centros else ["-"])
