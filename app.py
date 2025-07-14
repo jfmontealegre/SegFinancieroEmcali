@@ -122,10 +122,35 @@ with col2:
     otros = st.checkbox("Otros")
 
 # Puedes agrupar los seleccionados en una lista o cadena
+st.markdown("""
+<style>
+.radio-card {
+    background-color: #f8f9fa;
+    border: 2px solid #ef5f17;
+    border-radius: 12px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+    font-family: 'Segoe UI', sans-serif;
+    box-shadow: 0px 4px 8px rgba(0,0,0,0.05);
+}
+.radio-card h4 {
+    color: #ef5f17;
+    margin-bottom: 1rem;
+}
+</style>
+<div class='radio-card'>
+    <h4>Categoría Relacionada</h4>
+</div>
+""", unsafe_allow_html=True)
+
 categoria = st.radio(
     "Seleccione una categoría:",
-    options=["AGOP", "3.1", "Contratos", "Otros"]
+    options=["AGOP", "3.1", "Contratos", "Otros"],
+    horizontal=True,
+    key="radio_categoria"
 )
+
+✅
 
 # (opcional) mostrar resumen:
 st.markdown(f"**Seleccionado(s):** {', '.join(categorias_seleccionadas) if categorias_seleccionadas else 'Ninguno'}")
@@ -145,7 +170,7 @@ grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df 
 if "datos" not in st.session_state:
     st.session_state.datos = pd.DataFrame(columns=[
         "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
-        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha", "Categorías", "Agrupador ML", "Proyecto ML", "Pospre ML"
+        "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total", "Fecha", "Categoría"
     ])
 
 def obtener_ingreso_asignado(centro):
@@ -226,43 +251,29 @@ if menu == "Agregar":
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
 
-    # 🧠 PREDICCIÓN AUTOMÁTICA
-    entrada_modelo = (
-        f"{grupo} {concepto} {descripcion.lower()} "
-        f"{' '.join(categorias_seleccionadas).lower()} "
-        f"{centro.lower()} {unidad.lower()}"
+    # Categoría única seleccionable
+    categoria = st.radio(
+        "Seleccione una categoría:",
+        options=["AGOP", "3.1", "Contratos", "Otros"]
     )
 
-    agrupador_predicho, proyecto_predicho, pospre_predicho = modelo_clasificador.predict([entrada_modelo])[0]
-
-    st.markdown(f"""
-    <div style="border: 1px solid #ef5f17; padding: 10px; border-radius: 10px; background-color: #fffaf3;">
-        <b>🧠 Clasificación automática:</b><br>
-        • Agrupador: <code>{agrupador_predicho}</code><br>
-        • Proyecto: <code>{proyecto_predicho}</code><br>
-        • Pospre: <code>{pospre_predicho}</code>
-    </div>
-    """, unsafe_allow_html=True)
-
+    # Validación presupuestal
     total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
     ingreso_disponible = obtener_ingreso_asignado(centro)
     nuevo_total_proyectado = total_gastado_ajustado + total
 
-    puede_guardar = nuevo_total_proyectado <= ingreso_disponible
-    if not puede_guardar:
+    if nuevo_total_proyectado > ingreso_disponible:
         st.warning(f"⚠️ El valor total proyectado (${nuevo_total_proyectado:,.2f}) supera el Ingreso Asignado (${ingreso_disponible:,.2f}). No se puede guardar.")
+        puede_guardar = False
+    else:
+        puede_guardar = True
 
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
-                               descripcion, cantidad, valor_unitario, total,
-                               fecha, ', '.join(categoria),
-                               agrupador_predicho, proyecto_predicho, pospre_predicho]],
-                             columns=[
-                                 "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
-                                 "Descripción del Gasto", "Cantidad", "Valor Unitario", "Total",
-                                 "Fecha", "Categorías", "Agrupador ML", "Proyecto ML", "Pospre ML"
-                             ])
-        st.session_state.datos = pd.concat([st.session_state.datos, nuevo], ignore_index=True)
+                               descripcion, cantidad, valor_unitario, total, fecha,
+                               categoria]],
+                             columns=df.columns.tolist() + ["Categoría"])
+        st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
         st.success("✅ Registro guardado correctamente")
