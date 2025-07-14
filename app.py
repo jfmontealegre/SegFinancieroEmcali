@@ -7,13 +7,9 @@ import plotly.express as px
 
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
-# Mostrar el logo en la barra lateral
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
-
 LOGO_TANGARA = "Pajaro_Tangara_2.png"
 
-        
-# Estilos
 st.markdown("""
 <style>
     html, body, [class*="css"] {
@@ -54,12 +50,12 @@ def cargar_usuarios(path):
         for _, row in df_login.iterrows()
     }
     return credenciales
-        
+
 credenciales = cargar_usuarios("presupuesto.xlsx")
 
-# Autenticación secundaria
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
+
 def mostrar_login():
     st.markdown("""
         <div style="text-align: center;">
@@ -79,7 +75,6 @@ def mostrar_login():
         else:
             st.error("❌ Usuario o contraseña incorrectos")
 
-
 def mostrar_logout():
     with st.sidebar:
         st.markdown(f"👤 Usuario: `{st.session_state['usuario']}`")
@@ -89,90 +84,14 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-
-        
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
 else:
     mostrar_logout()
 
-    # Tabs SOLO si está logueado
-    tab1, = st.tabs(["📊 Dashboard"])
-
-    with tab1:
-        st.markdown("### 📊 Dashboard Financiero")
-
-        centro_actual = st.session_state.get("centro_actual", "52000")
-        ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-        total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
-        saldo_disponible = ingreso_asignado - total_gastado
-
-        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
-
-        gastos_por_concepto = st.session_state.datos.groupby("Concepto de Gasto")["Total"].sum().reset_index()
-        fig = px.bar(
-            gastos_por_concepto,
-            x="Total",
-            y="Concepto de Gasto",
-            orientation="h",
-            title="Gastos por Concepto de Gasto",
-            color_discrete_sequence=["#ef5f17"]
-        )
-        fig.update_layout(yaxis=dict(categoryorder='total ascending'))
-        st.plotly_chart(fig)
-
-# Encabezado principal
-col1, col2 = st.columns([1, 10])
-with col1:
-    st.image("icono-energia.png", width=90)
-with col2:
-    st.markdown("""
-        <div style='display: flex; flex-direction: column; justify-content: center;'>
-            <h1 style='font-family: "Segoe UI", sans-serif; color: #ef5f17; margin-bottom: 0; font-size: 40px;'>
-                Gestión Presupuestal UENE 2026
-            </h1>
-        </div>
-        """, unsafe_allow_html=True)
-
-# Archivos base
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
-
-
-# Puedes agrupar los seleccionados en una lista o cadena
-st.markdown("""
-<style>
-.radio-card {
-    background-color: #f8f9fa;
-    border: 2px solid #ef5f17;
-    border-radius: 12px;
-    padding: 1.2rem;
-    margin-top: 1rem;
-    font-family: 'Segoe UI', sans-serif;
-    box-shadow: 0px 4px 8px rgba(0,0,0,0.05);
-}
-.radio-card h4 {
-    color: #ef5f17;
-    margin-bottom: 1rem;
-}
-</style>
-<div class='radio-card'>
-    <h4>Categoría Relacionada</h4>
-</div>
-""", unsafe_allow_html=True)
-
-categoria = st.radio(
-    "Seleccione una categoría:",
-    options=["AGOP", "3.1", "Contratos", "Otros"],
-    horizontal=True,
-    key="radio_categoria"
-)
-
-
-# (opcional) mostrar resumen:
-st.markdown(f"**Seleccionado:** {categoria}")
-
 
 @st.cache_data
 def cargar_relaciones(path):
@@ -217,45 +136,31 @@ def registrar_bitacora(accion, usuario, item):
         nueva = fila
     nueva.to_csv(BITACORA_FILE, index=False)
 
-# Menú
-opciones_admin = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
-opciones_usuario = ["Agregar", "Ver Todo"]
+# Tabs organizados
+presupuesto_tab, dashboard_tab = st.tabs(["🧾 Presupuesto", "📊 Dashboard"])
 
-menu = st.sidebar.selectbox("Menú", opciones_admin if st.session_state["usuario"] == "admin" else opciones_usuario)
-df = st.session_state.datos
+with presupuesto_tab:
+    st.header("Gestión Presupuestal UENE 2026")
+    st.image("icono-energia.png", width=90)
 
-# Tarjeta lateral de saldo
-with st.sidebar:
-    st.markdown("---")
+    menu = st.sidebar.selectbox("Menú", ["Agregar", "Ver Todo"])
+    df = st.session_state.datos
+
     centro_actual = st.session_state.get("centro_actual", "52000")
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    total_gastado = df.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
-    # Ahora sí puedes usarla
-    st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
-    st.markdown(f"""
-    <div style="background-color: #f8f9fa; border: 2px solid #ef5f17; border-radius: 10px;
-                padding: 1rem; margin-top: 1rem; font-size: 14px; font-family: Segoe UI, sans-serif;">
-        <h4 style="color:#ef5f17; margin:0;">💼 {centro_actual}</h4>
-        <p style="margin:0;"><strong>Ingreso:</strong> ${ingreso_asignado:,.2f}</p>
-        <p style="margin:0;"><strong>Gastos:</strong> ${total_gastado:,.2f}</p>
-        <p style="margin:0;"><strong>Saldo:</strong> 
-            <span style="color:{'red' if saldo_disponible < 0 else 'green'};">
-                ${saldo_disponible:,.2f}
-            </span>
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    with st.sidebar:
+        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
 
-
-if menu == "Agregar":
+    if menu == "Agregar":
     st.subheader("➕ Agregar Registro")
 
     if "contador_item" not in st.session_state:
         st.session_state.contador_item = 1
 
-    item = f"G{st.session_state.contador_item:04}"  # G0001, G0002, etc.
+    item = f"G{st.session_state.contador_item:04}"
     st.text_input("Ítem", value=item, disabled=True)
 
     grupo = st.selectbox("Grupo", grupos_centros_df["Grupo"].unique())
@@ -272,14 +177,8 @@ if menu == "Agregar":
     total = cantidad * valor_unitario
     fecha = st.date_input("Fecha", value=datetime.today())
     st.write(f"💲 **Total Calculado:** {total:,.2f}")
+    categoria = st.radio("Seleccione una categoría:", options=["AGOP", "3.1", "Contratos", "Otros"])
 
-    # Categoría única seleccionable
-    categoria = st.radio(
-        "Seleccione una categoría:",
-        options=["AGOP", "3.1", "Contratos", "Otros"]
-    )
-
-    # Validación presupuestal
     total_gastado_ajustado = st.session_state.datos.query("`Centro Gestor` == @centro")["Total"].sum()
     ingreso_disponible = obtener_ingreso_asignado(centro)
     nuevo_total_proyectado = total_gastado_ajustado + total
@@ -293,23 +192,12 @@ if menu == "Agregar":
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total, fecha,
-                               categoria]],
-                             columns=df.columns)
+                               categoria]], columns=df.columns)
         st.session_state.datos = pd.concat([df, nuevo], ignore_index=True)
         registrar_bitacora("Agregar", st.session_state["usuario"], item)
         st.session_state.contador_item += 1
         st.success("✅ Registro guardado correctamente")
         st.rerun()
-
-    if not st.session_state.datos.empty:
-        st.subheader("📋 Registros Agregados")
-        st.dataframe(st.session_state.datos, use_container_width=True)
-        
-    if "contador_item" not in st.session_state:
-        st.session_state.contador_item = 1
-        # Registrar en bitácora (ahora sí, item ya está definido)
-        registrar_bitacora("Agregar", st.session_state["usuario"], item)
-        st.success("✅ Registro guardado correctamente")
 
 elif menu == "Buscar":
     st.subheader("🔍 Buscar por Ítem")
@@ -380,3 +268,25 @@ elif menu == "Historial" and st.session_state["usuario"] == "admin":
         st.download_button("📥 Descargar Historial", data=log.to_csv(index=False), file_name="bitacora_admin.csv", mime="text/csv")
     else:
         st.info("No hay registros de historial aún.")
+
+with dashboard_tab:
+    st.markdown("### 📊 Dashboard Financiero")
+    centro_actual = st.session_state.get("centro_actual", "52000")
+    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    saldo_disponible = ingreso_asignado - total_gastado
+    st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+
+    if not st.session_state.datos.empty:
+        gastos_por_concepto = st.session_state.datos.groupby("Concepto de Gasto")["Total"].sum().reset_index()
+        fig = px.bar(
+            gastos_por_concepto,
+            x="Total",
+            y="Concepto de Gasto",
+            orientation="h",
+            title="Gastos por Concepto de Gasto",
+            color_discrete_sequence=["#ef5f17"]
+        )
+        fig.update_layout(yaxis=dict(categoryorder='total ascending'))
+        st.plotly_chart(fig)
+ 
