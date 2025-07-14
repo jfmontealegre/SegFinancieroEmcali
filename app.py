@@ -146,15 +146,7 @@ with presupuesto_tab:
     menu = st.sidebar.selectbox("Menú", ["Agregar", "Ver Todo"])
     df = st.session_state.datos
 
-    centro_actual = st.session_state.get("centro_actual", "52000")
-    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-    total_gastado = df.query("`Centro Gestor` == @centro_actual")["Total"].sum()
-    saldo_disponible = ingreso_asignado - total_gastado
-
-    with st.sidebar:
-        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
-
-        if menu == "Agregar":
+     if menu == "Agregar":
             st.subheader("➕ Agregar Registro")
     
             if "contador_item" not in st.session_state:
@@ -268,6 +260,16 @@ with presupuesto_tab:
                 st.download_button("📥 Descargar Historial", data=log.to_csv(index=False), file_name="bitacora_admin.csv", mime="text/csv")
             else:
                 st.info("No hay registros de historial aún.")
+                
+    centro_actual = st.session_state.get("centro_actual", "52000")
+    ingreso_asignado = obtener_ingreso_asignado(centro_actual)
+    total_gastado = df.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    saldo_disponible = ingreso_asignado - total_gastado
+
+    with st.sidebar:
+        st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+
+       
 
 with dashboard_tab:
     st.markdown("### 📊 Dashboard Financiero")
