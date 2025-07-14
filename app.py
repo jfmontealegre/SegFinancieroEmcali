@@ -122,11 +122,10 @@ with col2:
     otros = st.checkbox("Otros")
 
 # Puedes agrupar los seleccionados en una lista o cadena
-categorias_seleccionadas = []
-if agop: categorias_seleccionadas.append("AGOP")
-if tres_uno: categorias_seleccionadas.append("3.1")
-if contratos: categorias_seleccionadas.append("Contratos")
-if otros: categorias_seleccionadas.append("Otros")
+categoria = st.radio(
+    "Seleccione una categoría:",
+    options=["AGOP", "3.1", "Contratos", "Otros"]
+)
 
 # (opcional) mostrar resumen:
 st.markdown(f"**Seleccionado(s):** {', '.join(categorias_seleccionadas) if categorias_seleccionadas else 'Ninguno'}")
@@ -256,7 +255,7 @@ if menu == "Agregar":
     if st.button("Guardar", disabled=not puede_guardar):
         nuevo = pd.DataFrame([[item, grupo, centro, unidad, concepto,
                                descripcion, cantidad, valor_unitario, total,
-                               fecha, ', '.join(categorias_seleccionadas),
+                               fecha, ', '.join(categoria),
                                agrupador_predicho, proyecto_predicho, pospre_predicho]],
                              columns=[
                                  "Ítem", "Grupo", "Centro Gestor", "Unidad", "Concepto de Gasto",
