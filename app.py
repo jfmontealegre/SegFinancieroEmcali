@@ -203,7 +203,7 @@ with presupuesto_tab:
         cantidad = st.number_input("Cantidad", min_value=1, format="%d")
         valor_unitario = st.number_input("Valor Unitario", min_value=0.0, format="%.2f")
         total = cantidad * valor_unitario
-        fecha = st.date_input("Fecha", value=datetime.today())
+        fecha = st.date_input("Fecha Inicio de Proceso", value=datetime.today())
         st.write(f"💲 **Total Calculado:** {total:,.2f}")
        
         
