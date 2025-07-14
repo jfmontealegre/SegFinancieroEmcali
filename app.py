@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import pytz
 import os
+import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Presupuesto EMCALI", layout="centered")
 
@@ -88,6 +89,24 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
+# Crear la pestaña
+tab1, = st.tabs(["📊 Dashboard"])
+
+with tab1:
+    st.markdown("### 📊 Panel de Control Presupuestal")
+    st.metric("Saldo Disponible", f"${saldo_disponible:,.2f}")
+
+    # Agrupación de gastos por concepto
+    gastos_por_concepto = df.groupby("Concepto de Gasto")["Total"].sum().sort_values(ascending=False)
+
+    # Visualización con matplotlib
+    fig, ax = plt.subplots(figsize=(8, 4))
+    gastos_por_concepto.plot(kind="barh", ax=ax, color="#ef5f17")
+    ax.set_xlabel("Total en pesos")
+    ax.set_title("Gastos por Concepto de Gasto")
+    ax.invert_yaxis()  # El concepto con mayor valor arriba
+    st.pyplot(fig)
+        
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
