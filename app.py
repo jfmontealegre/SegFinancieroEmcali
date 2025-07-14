@@ -150,7 +150,6 @@ categoria = st.radio(
     key="radio_categoria"
 )
 
-✅
 
 # (opcional) mostrar resumen:
 st.markdown(f"**Seleccionado(s):** {', '.join(categorias_seleccionadas) if categorias_seleccionadas else 'Ninguno'}")
