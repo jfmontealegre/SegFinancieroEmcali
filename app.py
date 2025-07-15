@@ -353,7 +353,7 @@ with dashboard_tab:
     """, unsafe_allow_html=True)
 
     # HTML de tarjetas
-    st.markdown(f\"""
+    st.markdown(f"""
     <div style='display: flex; flex-wrap: wrap; justify-content: space-around; margin-bottom: 2rem;'>
         <div class='card'>
             <h4 class='card-title'>Ingreso</h4>
@@ -372,7 +372,7 @@ with dashboard_tab:
             <p class='card-value'>{num_registros}</p>
         </div>
     </div>
-    \""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 
     # 🔹 Visualización 1: Barras por concepto
