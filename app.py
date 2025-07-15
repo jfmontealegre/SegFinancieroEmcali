@@ -323,33 +323,56 @@ with dashboard_tab:
     saldo_disponible = ingreso_asignado - total_gastado
     num_registros = datos_centro.shape[0]
     color_saldo = "green" if saldo_disponible >= 0 else "red"
+    
+    # CSS para las tarjetas
+    st.markdown("""
+    <style>
+    .card {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem;
+        width: 220px;
+        text-align: center;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
+        margin: 0.5rem;
+        display: inline-block;
+    }
+    .card-title {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+    .card-value {
+        margin: 0;
+        font-size: 20px;
+        font-weight: bold;
+        color: #000;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-    # Tarjetas resumen
-    st.markdown(f"""
-    <div class='card-container'>
-
+    # HTML de tarjetas
+    st.markdown(f\"""
+    <div style='display: flex; flex-wrap: wrap; justify-content: space-around; margin-bottom: 2rem;'>
         <div class='card'>
             <h4 class='card-title'>Ingreso</h4>
             <p class='card-value'>${ingreso_asignado:,.2f}</p>
         </div>
-
         <div class='card'>
             <h4 class='card-title'>Gastos</h4>
             <p class='card-value'>${total_gastado:,.2f}</p>
         </div>
-
         <div class='card'>
             <h4 class='card-title'>Saldo</h4>
             <p class='card-value' style='color:{color_saldo};'>${saldo_disponible:,.2f}</p>
         </div>
-
         <div class='card'>
             <h4 class='card-title'>Registros</h4>
             <p class='card-value'>{num_registros}</p>
         </div>
-
     </div>
-    """, unsafe_allow_html=True)
+    \""", unsafe_allow_html=True)
 
 
     # 🔹 Visualización 1: Barras por concepto
