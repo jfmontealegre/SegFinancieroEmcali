@@ -313,8 +313,9 @@ with presupuesto_tab:
                 
 
 with dashboard_tab:
-    st.markdown("### 🧾 Dashboard Financiero")
+    st.markdown("## 🧮 Dashboard Financiero")
 
+    # Cálculos clave
     centro_actual = st.session_state.get("centro_actual", "52000")
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
     datos_centro = st.session_state.datos.query("`Centro Gestor` == @centro_actual")
@@ -323,42 +324,43 @@ with dashboard_tab:
     num_registros = datos_centro.shape[0]
     color_saldo = "green" if saldo_disponible >= 0 else "red"
 
-    # 🔹 Resumen visual tipo tarjetas
+    # 🔷 Tarjetas resumen
     st.markdown(f"""
-    <div style='display: flex; justify-content: space-around; margin-bottom: 2rem;'>
+    <div style="display: flex; justify-content: space-around; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
 
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
-            <img src='https://img.icons8.com/ios-filled/50/money.png' width='32'>
-            <h4 style='margin:0;'>Ingreso</h4>
-            <p style='margin:0; font-size: 18px; font-weight:bold;'>${ingreso_asignado:,.2f}</p>
+        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
+                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
+            <img src="https://img.icons8.com/ios-filled/50/money.png" width="32">
+            <h4 style="margin:0;">Ingreso</h4>
+            <p style="margin:0; font-size: 18px; font-weight:bold;">${ingreso_asignado:,.2f}</p>
         </div>
 
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
-            <img src='https://img.icons8.com/ios-filled/50/expenses.png' width='32'>
-            <h4 style='margin:0;'>Gastos</h4>
-            <p style='margin:0; font-size: 18px; font-weight:bold;'>${total_gastado:,.2f}</p>
+        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
+                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
+            <img src="https://img.icons8.com/ios-filled/50/expenses.png" width="32">
+            <h4 style="margin:0;">Gastos</h4>
+            <p style="margin:0; font-size: 18px; font-weight:bold;">${total_gastado:,.2f}</p>
         </div>
 
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
-            <img src='https://img.icons8.com/ios-filled/50/safe.png' width='32'>
-            <h4 style='margin:0;'>Saldo</h4>
-            <p style='margin:0; font-size: 18px; font-weight:bold; color:{color_saldo};'>
+        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
+                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
+            <img src="https://img.icons8.com/ios-filled/50/safe.png" width="32">
+            <h4 style="margin:0;">Saldo</h4>
+            <p style="margin:0; font-size: 18px; font-weight:bold; color:{color_saldo};">
                 ${saldo_disponible:,.2f}
             </p>
         </div>
 
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
-            <img src='https://img.icons8.com/ios-filled/50/list.png' width='32'>
-            <h4 style='margin:0;'>Registros</h4>
-            <p style='margin:0; font-size: 18px; font-weight:bold;'>{num_registros}</p>
+        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
+                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
+            <img src="https://img.icons8.com/ios-filled/50/list.png" width="32">
+            <h4 style="margin:0;">Registros</h4>
+            <p style="margin:0; font-size: 18px; font-weight:bold;">{num_registros}</p>
         </div>
 
     </div>
     """, unsafe_allow_html=True)
+
 
     # 🔹 Visualización 1: Barras por concepto
     st.markdown("#### 📌 ¿En qué se está gastando más?")
