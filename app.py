@@ -324,7 +324,7 @@ with dashboard_tab:
     num_registros = st.session_state.datos.query("`Centro Gestor` == @centro_actual").shape[0]
     color_saldo = "green" if saldo_disponible >= 0 else "red"
     
-    st.markdown(f"""
+    st.markdown("""
     <div style='display: flex; justify-content: space-around; margin-bottom: 2rem;'>
     
         <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
