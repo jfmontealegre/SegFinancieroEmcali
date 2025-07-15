@@ -320,28 +320,28 @@ with dashboard_tab:
     total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
 
-        # Barra de resumen con tarjetas
+    # Mostrar tarjetas resumen con estilo moderno
     num_registros = st.session_state.datos.query("`Centro Gestor` == @centro_actual").shape[0]
     color_saldo = "green" if saldo_disponible >= 0 else "red"
     
     st.markdown(f"""
     <div style='display: flex; justify-content: space-around; margin-bottom: 2rem;'>
     
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%; 
+        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/money.png' width='32'>
             <h4 style='margin:0;'>Ingreso</h4>
             <p style='margin:0; font-size: 18px; font-weight:bold;'>${ingreso_asignado:,.2f}</p>
         </div>
     
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%; 
+        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/expenses.png' width='32'>
             <h4 style='margin:0;'>Gastos</h4>
             <p style='margin:0; font-size: 18px; font-weight:bold;'>${total_gastado:,.2f}</p>
         </div>
     
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%; 
+        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/safe.png' width='32'>
             <h4 style='margin:0;'>Saldo</h4>
@@ -350,7 +350,7 @@ with dashboard_tab:
             </p>
         </div>
     
-        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%; 
+        <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/list.png' width='32'>
             <h4 style='margin:0;'>Registros</h4>
@@ -359,6 +359,7 @@ with dashboard_tab:
     
     </div>
     """, unsafe_allow_html=True)
+
 
     if not st.session_state.datos.empty:
 
