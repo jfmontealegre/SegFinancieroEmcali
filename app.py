@@ -326,36 +326,26 @@ with dashboard_tab:
 
     # Tarjetas resumen
     st.markdown(f"""
-    <div style="display: flex; justify-content: space-around; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+    <div class='card-container'>
 
-        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
-            <img src="https://img.icons8.com/ios-filled/50/money.png" width="32">
-            <h4 style="margin:0;">Ingreso</h4>
-            <p style="margin:0; font-size: 18px; font-weight:bold;">${ingreso_asignado:,.2f}</p>
+        <div class='card'>
+            <h4 class='card-title'>Ingreso</h4>
+            <p class='card-value'>${ingreso_asignado:,.2f}</p>
         </div>
 
-        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
-            <img src="https://img.icons8.com/ios-filled/50/expenses.png" width="32">
-            <h4 style="margin:0;">Gastos</h4>
-            <p style="margin:0; font-size: 18px; font-weight:bold;">${total_gastado:,.2f}</p>
+        <div class='card'>
+            <h4 class='card-title'>Gastos</h4>
+            <p class='card-value'>${total_gastado:,.2f}</p>
         </div>
 
-        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
-            <img src="https://img.icons8.com/ios-filled/50/safe.png" width="32">
-            <h4 style="margin:0;">Saldo</h4>
-            <p style="margin:0; font-size: 18px; font-weight:bold; color:{color_saldo};">
-                ${saldo_disponible:,.2f}
-            </p>
+        <div class='card'>
+            <h4 class='card-title'>Saldo</h4>
+            <p class='card-value' style='color:{color_saldo};'>${saldo_disponible:,.2f}</p>
         </div>
 
-        <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
-                    text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);">
-            <img src="https://img.icons8.com/ios-filled/50/list.png" width="32">
-            <h4 style="margin:0;">Registros</h4>
-            <p style="margin:0; font-size: 18px; font-weight:bold;">{num_registros}</p>
+        <div class='card'>
+            <h4 class='card-title'>Registros</h4>
+            <p class='card-value'>{num_registros}</p>
         </div>
 
     </div>
