@@ -313,34 +313,34 @@ with presupuesto_tab:
                 
 
 with dashboard_tab:
-    st.markdown("### 📊 Dashboard Financiero")
+    st.markdown("### 🧾 Dashboard Financiero")
 
     centro_actual = st.session_state.get("centro_actual", "52000")
     ingreso_asignado = obtener_ingreso_asignado(centro_actual)
-    total_gastado = st.session_state.datos.query("`Centro Gestor` == @centro_actual")["Total"].sum()
+    datos_centro = st.session_state.datos.query("`Centro Gestor` == @centro_actual")
+    total_gastado = datos_centro["Total"].sum()
     saldo_disponible = ingreso_asignado - total_gastado
-
-    # Mostrar tarjetas resumen con estilo moderno
-    num_registros = st.session_state.datos.query("`Centro Gestor` == @centro_actual").shape[0]
+    num_registros = datos_centro.shape[0]
     color_saldo = "green" if saldo_disponible >= 0 else "red"
-    
-    st.markdown("""
+
+    # 🔹 Resumen visual tipo tarjetas
+    st.markdown(f"""
     <div style='display: flex; justify-content: space-around; margin-bottom: 2rem;'>
-    
+
         <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/money.png' width='32'>
             <h4 style='margin:0;'>Ingreso</h4>
             <p style='margin:0; font-size: 18px; font-weight:bold;'>${ingreso_asignado:,.2f}</p>
         </div>
-    
+
         <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/expenses.png' width='32'>
             <h4 style='margin:0;'>Gastos</h4>
             <p style='margin:0; font-size: 18px; font-weight:bold;'>${total_gastado:,.2f}</p>
         </div>
-    
+
         <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/safe.png' width='32'>
@@ -349,106 +349,61 @@ with dashboard_tab:
                 ${saldo_disponible:,.2f}
             </p>
         </div>
-    
+
         <div style='background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 22%;
                     text-align: center; box-shadow: 2px 2px 8px rgba(0,0,0,0.05);'>
             <img src='https://img.icons8.com/ios-filled/50/list.png' width='32'>
             <h4 style='margin:0;'>Registros</h4>
             <p style='margin:0; font-size: 18px; font-weight:bold;'>{num_registros}</p>
         </div>
-    
+
     </div>
     """, unsafe_allow_html=True)
 
+    # 🔹 Visualización 1: Barras por concepto
+    st.markdown("#### 📌 ¿En qué se está gastando más?")
+    gastos_por_concepto = datos_centro.groupby("Concepto de Gasto")["Total"].sum().reset_index()
+    chart_conceptos = alt.Chart(gastos_por_concepto).mark_bar().encode(
+        x=alt.X('Total:Q', title='Total ($)', axis=alt.Axis(format='$,.0f')),
+        y=alt.Y('Concepto de Gasto:N', sort='-x', title=None),
+        color=alt.Color('Concepto de Gasto:N', legend=None),
+        tooltip=["Concepto de Gasto", "Total"]
+    ).properties(width=700, height=400)
+    st.altair_chart(chart_conceptos, use_container_width=True)
 
-    if not st.session_state.datos.empty:
+    # 🔹 Visualización 2: Barras agrupadas por Categoría
+    st.markdown("#### 🔍 Comparativa por Categoría y Concepto")
+    if "Categoría" in datos_centro.columns:
+        gastos_categoria = datos_centro.groupby(["Categoría", "Concepto de Gasto"])["Total"].sum().reset_index()
+        chart_categoria = alt.Chart(gastos_categoria).mark_bar().encode(
+            x=alt.X("Concepto de Gasto:N", title="Concepto"),
+            y=alt.Y("Total:Q", title="Total ($)", axis=alt.Axis(format='$,.0f')),
+            color="Categoría:N",
+            column=alt.Column("Categoría:N", title=""),
+            tooltip=["Categoría", "Concepto de Gasto", "Total"]
+        ).properties(height=350).configure_view(stroke=None)
+        st.altair_chart(chart_categoria, use_container_width=True)
 
-        datos_centro = st.session_state.datos.query("`Centro Gestor` == @centro_actual")
+    # 🔹 Visualización 3: Línea temporal
+    st.markdown("#### 🕓 Evolución de los Gastos en el Tiempo")
+    if "Fecha" in datos_centro.columns:
+        datos_centro["Fecha"] = pd.to_datetime(datos_centro["Fecha"])
+        gastos_tiempo = datos_centro.groupby(pd.Grouper(key="Fecha", freq="M"))["Total"].sum().reset_index()
+        chart_linea = alt.Chart(gastos_tiempo).mark_line(point=True).encode(
+            x=alt.X("Fecha:T", title="Mes"),
+            y=alt.Y("Total:Q", title="Total Acumulado", axis=alt.Axis(format='$,.0f')),
+            tooltip=["Fecha", "Total"]
+        ).properties(width=700, height=300)
+        st.altair_chart(chart_linea, use_container_width=True)
 
-        # 1. Gráfico de barras por Concepto de Gasto
-        st.markdown("#### 📌 ¿En qué se está gastando más?")
-        gastos_por_concepto = (
-            datos_centro
-            .groupby("Concepto de Gasto")["Total"]
-            .sum()
-            .reset_index()
-        )
-
-        chart_conceptos = alt.Chart(gastos_por_concepto).mark_bar().encode(
-            x=alt.X('Total:Q', title='Total ($)', axis=alt.Axis(format='$,.0f')),
-            y=alt.Y('Concepto de Gasto:N', sort='-x', title=None),
-            color=alt.Color('Concepto de Gasto:N', legend=None),
-            tooltip=["Concepto de Gasto", "Total"]
-        ).properties(
-            width=700,
-            height=400,
-            title="Gastos por Concepto de Gasto"
-        )
-
-        st.altair_chart(chart_conceptos, use_container_width=True)
-
-        # 2. Barras agrupadas por Categoría y Concepto
-        st.markdown("#### 🔍 Comparativa por Categoría y Concepto")
-        if "Categoría" in datos_centro.columns:
-            gastos_categoria = (
-                datos_centro
-                .groupby(["Categoría", "Concepto de Gasto"])["Total"]
-                .sum()
-                .reset_index()
-            )
-
-            chart_categoria = alt.Chart(gastos_categoria).mark_bar().encode(
-                x=alt.X("Concepto de Gasto:N", title="Concepto"),
-                y=alt.Y("Total:Q", title="Total ($)", axis=alt.Axis(format='$,.0f')),
-                color="Categoría:N",
-                column=alt.Column("Categoría:N", title=""),
-                tooltip=["Categoría", "Concepto de Gasto", "Total"]
-            ).properties(height=350).configure_view(stroke=None)
-
-            st.altair_chart(chart_categoria, use_container_width=True)
-
-        # 3. Línea temporal de gastos
-        st.markdown("#### 🕓 Evolución de los Gastos en el Tiempo")
-        if "Fecha" in datos_centro.columns:
-            datos_centro["Fecha"] = pd.to_datetime(datos_centro["Fecha"])
-            gastos_tiempo = (
-                datos_centro
-                .groupby(pd.Grouper(key="Fecha", freq="M"))["Total"]
-                .sum()
-                .reset_index()
-            )
-
-            chart_linea = alt.Chart(gastos_tiempo).mark_line(point=True).encode(
-                x=alt.X("Fecha:T", title="Mes"),
-                y=alt.Y("Total:Q", title="Total Acumulado", axis=alt.Axis(format='$,.0f')),
-                tooltip=["Fecha", "Total"]
-            ).properties(
-                width=700,
-                height=300,
-                title="Gastos Mensuales Acumulados"
-            )
-
-            st.altair_chart(chart_linea, use_container_width=True)
-
-        # 4. Donut de distribución por Unidad
-        st.markdown("#### 🧩 Distribución por Unidad")
-        if "Unidad" in datos_centro.columns:
-            gastos_unidad = (
-                datos_centro
-                .groupby("Unidad")["Total"]
-                .sum()
-                .reset_index()
-            )
-
-            donut = alt.Chart(gastos_unidad).mark_arc(innerRadius=50).encode(
-                theta="Total:Q",
-                color="Unidad:N",
-                tooltip=["Unidad", "Total"]
-            ).properties(
-                width=400,
-                height=400,
-                title="Participación por Unidad"
-            )
-
-            st.altair_chart(donut, use_container_width=True)
+    # 🔹 Visualización 4: Donut por unidad
+    st.markdown("#### 🧩 Distribución por Unidad")
+    if "Unidad" in datos_centro.columns:
+        gastos_unidad = datos_centro.groupby("Unidad")["Total"].sum().reset_index()
+        donut = alt.Chart(gastos_unidad).mark_arc(innerRadius=50).encode(
+            theta="Total:Q",
+            color="Unidad:N",
+            tooltip=["Unidad", "Total"]
+        ).properties(width=400, height=400)
+        st.altair_chart(donut, use_container_width=True)
 
