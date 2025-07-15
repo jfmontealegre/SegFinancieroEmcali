@@ -327,47 +327,68 @@ with dashboard_tab:
     # CSS para las tarjetas
     st.markdown("""
     <style>
-    .card {
-        background-color: #f8f9fa;
-        border-radius: 12px;
-        padding: 1rem;
-        width: 220px;
-        text-align: center;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.05);
-        margin: 0.5rem;
-        display: inline-block;
-    }
-    .card-title {
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: #333;
-    }
-    .card-value {
-        margin: 0;
-        font-size: 20px;
-        font-weight: bold;
-        color: #000;
-    }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .main-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ef5f17;
+            padding-bottom: 1rem;
+        }
+        .card-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+            padding: 1rem;
+            width: 220px;
+            text-align: center;
+            flex-grow: 1;
+        }
+        .card-title {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+        .card-value {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0.3rem 0;
+        }
+        .icon {
+            width: 28px;
+            height: 28px;
+            margin-bottom: 0.5rem;
+        }
     </style>
     """, unsafe_allow_html=True)
 
     # HTML de tarjetas
     st.markdown(f"""
-    <div style='display: flex; flex-wrap: wrap; justify-content: space-around; margin-bottom: 2rem;'>
+    <div class='card-container'>
         <div class='card'>
+            <img class='icon' src='https://img.icons8.com/ios-filled/50/money.png'>
             <h4 class='card-title'>Ingreso</h4>
             <p class='card-value'>${ingreso_asignado:,.2f}</p>
         </div>
         <div class='card'>
+            <img class='icon' src='https://img.icons8.com/ios-filled/50/expenses.png'>
             <h4 class='card-title'>Gastos</h4>
             <p class='card-value'>${total_gastado:,.2f}</p>
         </div>
         <div class='card'>
+            <img class='icon' src='https://img.icons8.com/ios-filled/50/safe.png'>
             <h4 class='card-title'>Saldo</h4>
             <p class='card-value' style='color:{color_saldo};'>${saldo_disponible:,.2f}</p>
         </div>
         <div class='card'>
+            <img class='icon' src='https://img.icons8.com/ios-filled/50/list.png'>
             <h4 class='card-title'>Registros</h4>
             <p class='card-value'>{num_registros}</p>
         </div>
