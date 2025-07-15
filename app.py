@@ -325,7 +325,7 @@ with dashboard_tab:
     color_saldo = "green" if saldo_disponible >= 0 else "red"
 
     # 🔷 Tarjetas resumen
-    st.markdown(f"""
+    st.markdown(f'''
     <div style="display: flex; justify-content: space-around; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
 
         <div style="background-color: #f8f9fa; border-radius: 12px; padding: 1rem; width: 220px;
@@ -359,7 +359,7 @@ with dashboard_tab:
         </div>
 
     </div>
-    """, unsafe_allow_html=True)
+    ''', unsafe_allow_html=True)
 
 
     # 🔹 Visualización 1: Barras por concepto
