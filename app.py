@@ -6,16 +6,71 @@ import os
 import plotly.express as px
 from PIL import Image
 import altair as alt
+import mysql.connector
+from mysql.connector import Error
 
+# Función para conectar a MySQL
+def conectar():
+    try:
+        connection = mysql.connector.connect(
+            host='127.0.0.1',
+            port=3306,
+            user='root',
+            password='John1984*',  # reemplaza por tu contraseña real
+            database='uene_presupuesto'
+        )
+        if connection.is_connected():
+            print("✅ Conexión exitosa a MySQL")
+            return connection
+    except Error as e:
+        print(f"❌ Error de conexión: {e}")
+        return None
+
+# Cargar usuarios desde MySQL
+def cargar_usuarios_mysql():
+    conn = conectar()
+    if conn is not None:
+        query = "SELECT Usuario, Clave, Unidad FROM usuarios"
+        df_login = pd.read_sql(query, conn)
+        conn.close()
+        credenciales = {
+            row["Usuario"]: {
+                "password": str(row["Clave"]),
+                "centros": [row["Unidad"]]
+            }
+            for _, row in df_login.iterrows()
+        }
+        return credenciales
+    return {}
+
+# Guardar en MySQL
+def guardar_en_mysql(datos):
+    conn = conectar()
+    if conn:
+        cursor = conn.cursor()
+        sql = '''
+            INSERT INTO registros (
+                item, grupo, centro, unidad, concepto,
+                descripcion, cantidad, valor_unitario,
+                total, fecha, categoria
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        '''
+        cursor.execute(sql, datos)
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+# Streamlit config
 st.set_page_config(
     page_title="Presupuesto EMCALI",
-    page_icon="LOGO-EMCALI-vertical-color.png",  # 🟢 Ícono personalizado
+    page_icon="LOGO-EMCALI-vertical-color.png",
     layout="centered"
 )
 
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
-st.markdown("""
+# CSS
+st.markdown(\"\"\"
 <style>
     html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
@@ -42,35 +97,21 @@ st.markdown("""
         background-color: #cc4d12;
     }
 </style>
-""", unsafe_allow_html=True)
+\"\"\", unsafe_allow_html=True)
 
-@st.cache_data
-def cargar_usuarios(path):
-    df_login = pd.read_excel(path, sheet_name="Login")
-    credenciales = {
-        row["Usuario"]: {
-            "password": str(row["Clave"]),
-            "centros": [row["Unidad"]]
-        }
-        for _, row in df_login.iterrows()
-    }
-    return credenciales
-
-credenciales = cargar_usuarios("presupuesto.xlsx")
-
+# Credenciales y sesión
+credenciales = cargar_usuarios_mysql()
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
 
-def mostrar_login():    
+# Login
+def mostrar_login():
     tangara = Image.open("Pajaro_Tangara_2.png")
-
     col_logo, col_title = st.columns([1, 6])
-   
     with col_title:
         st.title("Inicio de Sesión")
     with col_logo:
         st.image(tangara, width=70)
-         
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
@@ -147,7 +188,6 @@ def registrar_bitacora(accion, usuario, item):
 # Menú
 opciones_admin = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
 opciones_usuario = ["Agregar", "Ver Todo"]
-
 menu = st.sidebar.selectbox("Menú", opciones_admin if st.session_state["usuario"] == "admin" else opciones_usuario)
 df = st.session_state.datos
 
