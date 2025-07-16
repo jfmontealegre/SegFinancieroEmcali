@@ -70,7 +70,7 @@ st.set_page_config(
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
 # CSS
-st.markdown(\"\"\"
+st.markdown("""
 <style>
     html, body, [class*="css"] {
         font-family: 'Segoe UI', sans-serif;
@@ -97,7 +97,7 @@ st.markdown(\"\"\"
         background-color: #cc4d12;
     }
 </style>
-\"\"\", unsafe_allow_html=True)
+""", unsafe_allow_html=True)
 
 # Credenciales y sesión
 credenciales = cargar_usuarios_mysql()
