@@ -1,4 +1,7 @@
 streamlit
 pandas
-openpyxl
 plotly
+altair
+Pillow
+mysql-connector-python
+openpyxl
