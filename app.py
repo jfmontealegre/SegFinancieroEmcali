@@ -9,6 +9,11 @@ import altair as alt
 import mysql.connector
 from mysql.connector import Error
 
+from dotenv import load_dotenv
+
+# Cargar variables de entorno desde .env
+load_dotenv()
+
 # Configuración de página
 st.set_page_config(page_title="Presupuesto EMCALI", page_icon="LOGO-EMCALI-vertical-color.png", layout="centered")
 
@@ -18,20 +23,22 @@ if "logueado" not in st.session_state:
 if "usuarios_cargados" not in st.session_state:
     st.session_state["usuarios_cargados"] = False
 
-# Función para conectar a PlanetScale
+# Función para conectar a PlanetScale usando .env
 def conectar():
     try:
-        username = "TU_USUARIO"
-        password = up.quote_plus("TU_CONTRASEÑA")
-        host = "TU_HOST.psdb.io"
-        database = "uene_presupuesto"
-
-        url = f"mysql+mysqlconnector://{username}:{password}@{host}/{database}?ssl_ca=https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
-        engine = create_engine(url)
-        print("✅ Conexión exitosa a PlanetScale")
-        return engine.connect()
-    except Exception as e:
-        print(f"❌ Error de conexión a PlanetScale: {e}")
+        connection = mysql.connector.connect(
+            host=os.getenv("PLANETSCALE_HOST"),
+            user=os.getenv("PLANETSCALE_USER"),
+            password=os.getenv("PLANETSCALE_PASSWORD"),
+            database=os.getenv("PLANETSCALE_DATABASE"),
+            ssl_ca=os.getenv("PLANETSCALE_SSL_CA"),
+            ssl_verify_cert=True
+        )
+        if connection.is_connected():
+            print("✅ Conexión exitosa a PlanetScale")
+            return connection
+    except Error as e:
+        print(f"❌ Error de conexión: {e}")
         return None
 
 # Cargar usuarios desde Excel a PlanetScale
