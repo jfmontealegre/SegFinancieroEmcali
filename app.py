@@ -80,63 +80,17 @@ def cargar_usuarios_mysql():
         return credenciales
     return {}
 
-# Guardar registros en MySQL
-def guardar_en_mysql(datos):
-    conn = conectar()
-    if conn:
-        cursor = conn.cursor()
-        sql = '''
-            INSERT INTO registros (
-                item, grupo, centro, unidad, concepto,
-                descripcion, cantidad, valor_unitario,
-                total, fecha, categoria
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        '''
-        cursor.execute(sql, datos)
-        conn.commit()
-        cursor.close()
-        conn.close()
+# Ejecutar la carga inicial de usuarios si no están cargados
+if not st.session_state["usuarios_cargados"]:
+    cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
+    st.session_state["usuarios_cargados"] = True
 
-# Configuración de página Streamlit
-st.set_page_config(
-    page_title="Presupuesto EMCALI",
-    page_icon="LOGO-EMCALI-vertical-color.png",
-    layout="centered"
-)
+# Configuración de Streamlit y Login
+st.set_page_config(page_title="Presupuesto EMCALI", page_icon="LOGO-EMCALI-vertical-color.png", layout="centered")
 
-st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
+if "logueado" not in st.session_state:
+    st.session_state["logueado"] = False
 
-# Estilos CSS
-st.markdown("""
-<style>
-    html, body, [class*="css"] {
-        font-family: 'Segoe UI', sans-serif;
-    }
-    [data-testid="stSidebar"] {
-        background-color: #f8f9fa;
-        border-right: 2px solid #ef5f17;
-        padding-top: 1rem;
-    }
-    h1, h2, h3 {
-        color: #ef5f17;
-        font-weight: bold;
-    }
-    .stButton > button {
-        background-color: #ef5f17;
-        color: white;
-        font-weight: bold;
-        border-radius: 8px;
-        padding: 0.5em 1.5em;
-        border: none;
-        transition: background-color 0.3s;
-    }
-    .stButton > button:hover {
-        background-color: #cc4d12;
-    }
-</style>
-""", unsafe_allow_html=True)
-
-# Login
 def mostrar_login():
     tangara = Image.open("Pajaro_Tangara_2.png")
     col_logo, col_title = st.columns([1, 6])
@@ -144,9 +98,11 @@ def mostrar_login():
         st.title("Inicio de Sesión")
     with col_logo:
         st.image(tangara, width=70)
+    
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
+        credenciales = cargar_usuarios_mysql()
         if username in credenciales and credenciales[username]["password"] == password:
             st.session_state["logueado"] = True
             st.session_state["usuario"] = username
@@ -165,21 +121,12 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-# Botón para cargar usuarios (solo admin)
-if st.session_state.get("usuario") == "admin" and not st.session_state["usuarios_cargados"]:
-    with st.sidebar:
-        if st.button("📥 Cargar usuarios desde Excel"):
-            cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
-            st.session_state["usuarios_cargados"] = True
-
-# Flujo de login
-credenciales = cargar_usuarios_mysql()
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
 else:
     mostrar_logout()
-
+    
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
 
