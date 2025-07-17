@@ -27,21 +27,32 @@ def conectar():
         return None
 
 # Cargar usuarios desde MySQL
-def cargar_usuarios_mysql():
-    conn = conectar()
-    if conn is not None:
-        query = "SELECT Usuario, Clave, Unidad FROM usuarios"
-        df_login = pd.read_sql(query, conn)
-        conn.close()
-        credenciales = {
-            row["Usuario"]: {
-                "password": str(row["Clave"]),
-                "centros": [row["Unidad"]]
-            }
-            for _, row in df_login.iterrows()
-        }
-        return credenciales
-    return {}
+def cargar_usuarios_excel_a_mysql(excel_path):
+    try:
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='John1984*',  # ← Reemplaza con tu contraseña real
+            database='uene_presupuesto'
+        )
+        if conn.is_connected():
+            df = pd.read_excel(excel_path, sheet_name='Login')
+            cursor = conn.cursor()
+            for _, row in df.iterrows():
+                sql = """
+                    INSERT INTO usuarios (Usuario, Clave, Unidad)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE Clave=VALUES(Clave), Unidad=VALUES(Unidad)
+                """
+                cursor.execute(sql, (row['Usuario'], str(row['Clave']), row['Unidad']))
+            conn.commit()
+            cursor.close()
+            conn.close()
+            return "✅ Usuarios cargados correctamente desde Excel"
+    except Error as e:
+        return f"❌ Error al conectar: {e}"
+# Ejecutar una vez para verificar la carga
+cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
 
 # Guardar en MySQL
 def guardar_en_mysql(datos):
