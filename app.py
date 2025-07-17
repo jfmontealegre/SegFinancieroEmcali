@@ -18,55 +18,41 @@ if "logueado" not in st.session_state:
 if "usuarios_cargados" not in st.session_state:
     st.session_state["usuarios_cargados"] = False
 
-# Función para conectar a MySQL
+# Función para conectar a PlanetScale
 def conectar():
     try:
-        connection = mysql.connector.connect(
-            host='127.0.0.1',
-            port=3306,
-            user='root',
-            password='John1984*',
-            database='uene_presupuesto'
-        )
-        if connection.is_connected():
-            print("✅ Conexión exitosa a MySQL")
-            return connection
-    except Error as e:
-        print(f"❌ Error de conexión: {e}")
+        username = "TU_USUARIO"
+        password = up.quote_plus("TU_CONTRASEÑA")
+        host = "TU_HOST.psdb.io"
+        database = "uene_presupuesto"
+
+        url = f"mysql+mysqlconnector://{username}:{password}@{host}/{database}?ssl_ca=https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem"
+        engine = create_engine(url)
+        print("✅ Conexión exitosa a PlanetScale")
+        return engine.connect()
+    except Exception as e:
+        print(f"❌ Error de conexión a PlanetScale: {e}")
         return None
 
-# Cargar usuarios desde Excel a MySQL
+# Cargar usuarios desde Excel a PlanetScale
 def cargar_usuarios_excel_a_mysql(excel_path):
     try:
         conn = conectar()
         if conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS usuarios (
-                    Usuario VARCHAR(50),
-                    Clave VARCHAR(100) NOT NULL,
-                    Unidad VARCHAR(100) NOT NULL,
-                    PRIMARY KEY (Usuario, Unidad)
-                )
-            """)
             df = pd.read_excel(excel_path, sheet_name='Login')
-            for _, row in df.iterrows():
-                sql = """
-                    INSERT INTO usuarios (Usuario, Clave, Unidad)
-                    VALUES (%s, %s, %s)
-                    ON DUPLICATE KEY UPDATE Clave=VALUES(Clave), Unidad=VALUES(Unidad)
-                """
-                cursor.execute(sql, (row['Usuario'], str(row['Clave']), row['Unidad']))
-            conn.commit()
-            cursor.close()
+            df.to_sql('usuarios', con=conn, if_exists='replace', index=False, dtype={
+                'Usuario': sqlalchemy.types.VARCHAR(50),
+                'Clave': sqlalchemy.types.VARCHAR(100),
+                'Unidad': sqlalchemy.types.VARCHAR(100)
+            })
+            st.success("✅ Usuarios cargados correctamente en PlanetScale.")
             conn.close()
-            st.success("✅ Usuarios cargados correctamente desde Excel.")
         else:
-            st.error("❌ No se pudo establecer conexión con la base de datos.")
+            st.error("❌ No se pudo establecer conexión con PlanetScale.")
     except Exception as e:
         st.error(f"❌ Error durante la carga de usuarios: {e}")
 
-# Cargar usuarios desde MySQL
+# Cargar usuarios desde PlanetScale
 def cargar_usuarios_mysql():
     conn = conectar()
     if conn is not None:
@@ -96,7 +82,7 @@ def mostrar_login():
         st.title("Inicio de Sesión")
     with col_logo:
         st.image(tangara, width=70)
-    
+
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
