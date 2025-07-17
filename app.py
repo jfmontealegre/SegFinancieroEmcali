@@ -31,15 +31,20 @@ def conectar():
 # Cargar usuarios desde MySQL
 def cargar_usuarios_excel_a_mysql(excel_path):
     try:
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='John1984*',  # ← Reemplaza con tu contraseña real
-            database='uene_presupuesto'
-        )
-        if conn.is_connected():
-            df = pd.read_excel(excel_path, sheet_name='Login')
+        conn = conectar()
+        if conn:
             cursor = conn.cursor()
+
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    Usuario VARCHAR(50),
+                    Clave VARCHAR(100) NOT NULL,
+                    Unidad VARCHAR(100) NOT NULL,
+                    PRIMARY KEY (Usuario, Unidad)
+                )
+            """)
+
+            df = pd.read_excel(excel_path, sheet_name='Login')
             for _, row in df.iterrows():
                 sql = """
                     INSERT INTO usuarios (Usuario, Clave, Unidad)
@@ -47,20 +52,15 @@ def cargar_usuarios_excel_a_mysql(excel_path):
                     ON DUPLICATE KEY UPDATE Clave=VALUES(Clave), Unidad=VALUES(Unidad)
                 """
                 cursor.execute(sql, (row['Usuario'], str(row['Clave']), row['Unidad']))
+
             conn.commit()
             cursor.close()
             conn.close()
-            return "✅ Usuarios cargados correctamente desde Excel"
-    except Error as e:
-        return f"❌ Error al conectar: {e}"
-
-# Credenciales y sesión
-credenciales = cargar_usuarios_mysql()
-if "logueado" not in st.session_state:
-    st.session_state["logueado"] = False
-    
-# Ejecutar una vez para verificar la carga
-cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
+            st.success("✅ Usuarios cargados correctamente desde Excel.")
+        else:
+            st.error("❌ No se pudo establecer conexión con la base de datos.")
+    except Exception as e:
+        st.error(f"❌ Error durante la carga de usuarios: {e}")
 
 # Guardar en MySQL
 def guardar_en_mysql(datos):
@@ -149,6 +149,17 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
+if "usuarios_cargados" not in st.session_state:
+    st.session_state["usuarios_cargados"] = False
+
+# Mostrar el botón solo si es admin y aún no se ha cargado
+if st.session_state.get("usuario") == "admin" and not st.session_state["usuarios_cargados"]:
+    with st.sidebar:
+        if st.button("📥 Cargar usuarios desde Excel"):
+            cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
+            st.session_state["usuarios_cargados"] = True
+
+            
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
