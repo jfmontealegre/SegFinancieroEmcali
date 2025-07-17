@@ -9,6 +9,9 @@ import altair as alt
 import mysql.connector
 from mysql.connector import Error
 
+# Configuración de página
+st.set_page_config(page_title="Presupuesto EMCALI", page_icon="LOGO-EMCALI-vertical-color.png", layout="centered")
+
 # Inicializar session_state
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
@@ -85,12 +88,7 @@ if not st.session_state["usuarios_cargados"]:
     cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
     st.session_state["usuarios_cargados"] = True
 
-# Configuración de Streamlit y Login
-st.set_page_config(page_title="Presupuesto EMCALI", page_icon="LOGO-EMCALI-vertical-color.png", layout="centered")
-
-if "logueado" not in st.session_state:
-    st.session_state["logueado"] = False
-
+# Login UI
 def mostrar_login():
     tangara = Image.open("Pajaro_Tangara_2.png")
     col_logo, col_title = st.columns([1, 6])
@@ -112,6 +110,7 @@ def mostrar_login():
         else:
             st.error("❌ Usuario o contraseña incorrectos")
 
+# Logout UI
 def mostrar_logout():
     with st.sidebar:
         st.markdown(f"👤 Usuario: `{st.session_state['usuario']}`")
@@ -121,6 +120,7 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
+# Mostrar login o contenido protegido
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
