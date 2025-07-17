@@ -9,6 +9,12 @@ import altair as alt
 import mysql.connector
 from mysql.connector import Error
 
+# Inicializar session_state
+if "logueado" not in st.session_state:
+    st.session_state["logueado"] = False
+if "usuarios_cargados" not in st.session_state:
+    st.session_state["usuarios_cargados"] = False
+
 # Función para conectar a MySQL
 def conectar():
     try:
@@ -16,7 +22,7 @@ def conectar():
             host='127.0.0.1',
             port=3306,
             user='root',
-            password='John1984*',  # reemplaza por tu contraseña real
+            password='John1984*',
             database='uene_presupuesto'
         )
         if connection.is_connected():
@@ -26,15 +32,12 @@ def conectar():
         print(f"❌ Error de conexión: {e}")
         return None
 
-
-    
-# Cargar usuarios desde MySQL
+# Cargar usuarios desde Excel a MySQL
 def cargar_usuarios_excel_a_mysql(excel_path):
     try:
         conn = conectar()
         if conn:
             cursor = conn.cursor()
-
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     Usuario VARCHAR(50),
@@ -43,7 +46,6 @@ def cargar_usuarios_excel_a_mysql(excel_path):
                     PRIMARY KEY (Usuario, Unidad)
                 )
             """)
-
             df = pd.read_excel(excel_path, sheet_name='Login')
             for _, row in df.iterrows():
                 sql = """
@@ -52,7 +54,6 @@ def cargar_usuarios_excel_a_mysql(excel_path):
                     ON DUPLICATE KEY UPDATE Clave=VALUES(Clave), Unidad=VALUES(Unidad)
                 """
                 cursor.execute(sql, (row['Usuario'], str(row['Clave']), row['Unidad']))
-
             conn.commit()
             cursor.close()
             conn.close()
@@ -62,7 +63,24 @@ def cargar_usuarios_excel_a_mysql(excel_path):
     except Exception as e:
         st.error(f"❌ Error durante la carga de usuarios: {e}")
 
-# Guardar en MySQL
+# Cargar usuarios desde MySQL
+def cargar_usuarios_mysql():
+    conn = conectar()
+    if conn is not None:
+        query = "SELECT Usuario, Clave, Unidad FROM usuarios"
+        df_login = pd.read_sql(query, conn)
+        conn.close()
+        credenciales = {
+            row["Usuario"]: {
+                "password": str(row["Clave"]),
+                "centros": [row["Unidad"]]
+            }
+            for _, row in df_login.iterrows()
+        }
+        return credenciales
+    return {}
+
+# Guardar registros en MySQL
 def guardar_en_mysql(datos):
     conn = conectar()
     if conn:
@@ -79,7 +97,7 @@ def guardar_en_mysql(datos):
         cursor.close()
         conn.close()
 
-# Streamlit config
+# Configuración de página Streamlit
 st.set_page_config(
     page_title="Presupuesto EMCALI",
     page_icon="LOGO-EMCALI-vertical-color.png",
@@ -88,7 +106,7 @@ st.set_page_config(
 
 st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
-# CSS
+# Estilos CSS
 st.markdown("""
 <style>
     html, body, [class*="css"] {
@@ -117,8 +135,6 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
-
 
 # Login
 def mostrar_login():
@@ -149,17 +165,15 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-if "usuarios_cargados" not in st.session_state:
-    st.session_state["usuarios_cargados"] = False
-
-# Mostrar el botón solo si es admin y aún no se ha cargado
+# Botón para cargar usuarios (solo admin)
 if st.session_state.get("usuario") == "admin" and not st.session_state["usuarios_cargados"]:
     with st.sidebar:
         if st.button("📥 Cargar usuarios desde Excel"):
             cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
             st.session_state["usuarios_cargados"] = True
 
-            
+# Flujo de login
+credenciales = cargar_usuarios_mysql()
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
