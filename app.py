@@ -132,13 +132,17 @@ BITACORA_FILE = "bitacora_admin.csv"
 
 @st.cache_data
 def cargar_relaciones(path):
-    hojas = pd.read_excel(path, sheet_name=None)
-    return (
-        hojas["Grupos_Centros"],
-        hojas["Centro_Unidades"],
-        hojas["Centro_Conceptos"],
-        hojas["Ingresos_Centros"]
-    )
+    try:
+        hojas = pd.read_excel(path, sheet_name=None)
+        return (
+            hojas["Grupos_Centros"],
+            hojas["Centro_Unidades"],
+            hojas["Centro_Conceptos"],
+            hojas["Ingresos_Centros"]
+        )
+    except Exception as e:
+        st.error(f"❌ Error al cargar hojas de Excel: {e}")
+        st.stop()
 
 grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df = cargar_relaciones(RELACION_FILE)
 
