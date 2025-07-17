@@ -26,10 +26,7 @@ def conectar():
         print(f"❌ Error de conexión: {e}")
         return None
 
-# Credenciales y sesión
-credenciales = cargar_usuarios_mysql()
-if "logueado" not in st.session_state:
-    st.session_state["logueado"] = False
+
     
 # Cargar usuarios desde MySQL
 def cargar_usuarios_excel_a_mysql(excel_path):
@@ -56,6 +53,12 @@ def cargar_usuarios_excel_a_mysql(excel_path):
             return "✅ Usuarios cargados correctamente desde Excel"
     except Error as e:
         return f"❌ Error al conectar: {e}"
+
+# Credenciales y sesión
+credenciales = cargar_usuarios_mysql()
+if "logueado" not in st.session_state:
+    st.session_state["logueado"] = False
+    
 # Ejecutar una vez para verificar la carga
 cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
 
