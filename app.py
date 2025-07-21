@@ -6,94 +6,74 @@ import os
 import plotly.express as px
 from PIL import Image
 import altair as alt
-import mysql.connector
-from mysql.connector import Error
 
-from dotenv import load_dotenv
+st.set_page_config(
+    page_title="Presupuesto EMCALI",
+    page_icon="LOGO-EMCALI-vertical-color.png",  # 🟢 Ícono personalizado
+    layout="centered"
+)
 
-# Cargar variables de entorno desde .env
-load_dotenv()
+st.sidebar.image("LOGO-EMCALI-vertical-color.png", use_container_width=True)
 
-# Configuración de página
-st.set_page_config(page_title="Presupuesto EMCALI", page_icon="LOGO-EMCALI-vertical-color.png", layout="centered")
+st.markdown("""
+<style>
+    html, body, [class*="css"] {
+        font-family: 'Segoe UI', sans-serif;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #f8f9fa;
+        border-right: 2px solid #ef5f17;
+        padding-top: 1rem;
+    }
+    h1, h2, h3 {
+        color: #ef5f17;
+        font-weight: bold;
+    }
+    .stButton > button {
+        background-color: #ef5f17;
+        color: white;
+        font-weight: bold;
+        border-radius: 8px;
+        padding: 0.5em 1.5em;
+        border: none;
+        transition: background-color 0.3s;
+    }
+    .stButton > button:hover {
+        background-color: #cc4d12;
+    }
+</style>
+""", unsafe_allow_html=True)
 
-# Inicializar session_state
+@st.cache_data
+def cargar_usuarios(path):
+    df_login = pd.read_excel(path, sheet_name="Login")
+    credenciales = {
+        row["Usuario"]: {
+            "password": str(row["Clave"]),
+            "centros": [row["Unidad"]]
+        }
+        for _, row in df_login.iterrows()
+    }
+    return credenciales
+
+credenciales = cargar_usuarios("presupuesto.xlsx")
+
 if "logueado" not in st.session_state:
     st.session_state["logueado"] = False
-if "usuarios_cargados" not in st.session_state:
-    st.session_state["usuarios_cargados"] = False
 
-# Función para conectar a PlanetScale usando .env
-def conectar():
-    try:
-        connection = mysql.connector.connect(
-            host=os.getenv("PLANETSCALE_HOST"),
-            user=os.getenv("PLANETSCALE_USER"),
-            password=os.getenv("PLANETSCALE_PASSWORD"),
-            database=os.getenv("PLANETSCALE_DATABASE"),
-            ssl_ca=os.getenv("PLANETSCALE_SSL_CA"),
-            ssl_verify_cert=True
-        )
-        if connection.is_connected():
-            print("✅ Conexión exitosa a PlanetScale")
-            return connection
-    except Error as e:
-        print(f"❌ Error de conexión: {e}")
-        return None
-
-# Cargar usuarios desde Excel a PlanetScale
-def cargar_usuarios_excel_a_mysql(excel_path):
-    try:
-        conn = conectar()
-        if conn:
-            df = pd.read_excel(excel_path, sheet_name='Login')
-            df.to_sql('usuarios', con=conn, if_exists='replace', index=False, dtype={
-                'Usuario': sqlalchemy.types.VARCHAR(50),
-                'Clave': sqlalchemy.types.VARCHAR(100),
-                'Unidad': sqlalchemy.types.VARCHAR(100)
-            })
-            st.success("✅ Usuarios cargados correctamente en PlanetScale.")
-            conn.close()
-        else:
-            st.error("❌ No se pudo establecer conexión con PlanetScale.")
-    except Exception as e:
-        st.error(f"❌ Error durante la carga de usuarios: {e}")
-
-# Cargar usuarios desde PlanetScale
-def cargar_usuarios_mysql():
-    conn = conectar()
-    if conn is not None:
-        query = "SELECT Usuario, Clave, Unidad FROM usuarios"
-        df_login = pd.read_sql(query, conn)
-        conn.close()
-        credenciales = {
-            row["Usuario"]: {
-                "password": str(row["Clave"]),
-                "centros": [row["Unidad"]]
-            }
-            for _, row in df_login.iterrows()
-        }
-        return credenciales
-    return {}
-
-# Ejecutar la carga inicial de usuarios si no están cargados
-if not st.session_state["usuarios_cargados"]:
-    cargar_usuarios_excel_a_mysql("presupuesto.xlsx")
-    st.session_state["usuarios_cargados"] = True
-
-# Login UI
-def mostrar_login():
+def mostrar_login():    
     tangara = Image.open("Pajaro_Tangara_2.png")
+
     col_logo, col_title = st.columns([1, 6])
+   
     with col_title:
         st.title("Inicio de Sesión")
     with col_logo:
         st.image(tangara, width=70)
-
+         
     username = st.text_input("Usuario")
     password = st.text_input("Contraseña", type="password")
     if st.button("Iniciar sesión"):
-        credenciales = cargar_usuarios_mysql()
         if username in credenciales and credenciales[username]["password"] == password:
             st.session_state["logueado"] = True
             st.session_state["usuario"] = username
@@ -103,7 +83,6 @@ def mostrar_login():
         else:
             st.error("❌ Usuario o contraseña incorrectos")
 
-# Logout UI
 def mostrar_logout():
     with st.sidebar:
         st.markdown(f"👤 Usuario: `{st.session_state['usuario']}`")
@@ -113,29 +92,24 @@ def mostrar_logout():
             st.session_state["centros_autorizados"] = []
             st.rerun()
 
-# Mostrar login o contenido protegido
 if not st.session_state["logueado"]:
     mostrar_login()
     st.stop()
 else:
     mostrar_logout()
-    
+
 RELACION_FILE = "presupuesto.xlsx"
 BITACORA_FILE = "bitacora_admin.csv"
 
 @st.cache_data
 def cargar_relaciones(path):
-    try:
-        hojas = pd.read_excel(path, sheet_name=None)
-        return (
-            hojas["Grupos_Centros"],
-            hojas["Centro_Unidades"],
-            hojas["Centro_Conceptos"],
-            hojas["Ingresos_Centros"]
-        )
-    except Exception as e:
-        st.error(f"❌ Error al cargar hojas de Excel: {e}")
-        st.stop()
+    hojas = pd.read_excel(path, sheet_name=None)
+    return (
+        hojas["Grupos_Centros"],
+        hojas["Centro_Unidades"],
+        hojas["Centro_Conceptos"],
+        hojas["Ingresos_Centros"]
+    )
 
 grupos_centros_df, centro_unidades_df, centro_conceptos_df, ingresos_centros_df = cargar_relaciones(RELACION_FILE)
 
@@ -173,6 +147,7 @@ def registrar_bitacora(accion, usuario, item):
 # Menú
 opciones_admin = ["Agregar", "Buscar", "Editar", "Eliminar", "Ver Todo", "Historial"]
 opciones_usuario = ["Agregar", "Ver Todo"]
+
 menu = st.sidebar.selectbox("Menú", opciones_admin if st.session_state["usuario"] == "admin" else opciones_usuario)
 df = st.session_state.datos
 
@@ -467,4 +442,3 @@ with dashboard_tab:
             tooltip=["Unidad", "Total"]
         ).properties(width=400, height=400)
         st.altair_chart(donut, use_container_width=True)
-
