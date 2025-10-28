@@ -1,7 +1,0 @@
-streamlit
-pandas
-plotly
-altair
-Pillow
-mysql-connector-python
-openpyxl
